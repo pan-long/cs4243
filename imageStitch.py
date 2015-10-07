@@ -1,6 +1,50 @@
 import cv2
+import math
 import cv2.cv as cv
 import numpy as np
+
+def findDimensions(image, homography):
+	base_p1 = np.ones(3, np.float32)
+	base_p2 = np.ones(3, np.float32)
+	base_p3 = np.ones(3, np.float32)
+	base_p4 = np.ones(3, np.float32)
+
+	(y, x) = image.shape[:2]
+
+	base_p1[:2] = [0,0]
+	base_p2[:2] = [x,0]
+	base_p3[:2] = [0,y]
+	base_p4[:2] = [x,y]
+
+	max_x = None
+	max_y = None
+	min_x = None
+	min_y = None
+
+	for pt in [base_p1, base_p2, base_p3, base_p4]:
+
+	    hp = np.matrix(homography, np.float32) * np.matrix(pt, np.float32).T
+
+	    hp_arr = np.array(hp, np.float32)
+
+	    normal_pt = np.array([hp_arr[0]/hp_arr[2], hp_arr[1]/hp_arr[2]], np.float32)
+
+	    if ( max_x == None or normal_pt[0,0] > max_x ):
+	        max_x = normal_pt[0,0]
+
+	    if ( max_y == None or normal_pt[1,0] > max_y ):
+	        max_y = normal_pt[1,0]
+
+	    if ( min_x == None or normal_pt[0,0] < min_x ):
+	        min_x = normal_pt[0,0]
+
+	    if ( min_y == None or normal_pt[1,0] < min_y ):
+	        min_y = normal_pt[1,0]
+
+	min_x = min(0, min_x)
+	min_y = min(0, min_y)
+
+	return (min_x, min_y, max_x, max_y)
 
 def drawMatches(img1, kp1, img2, kp2, matches):
 	"""
@@ -131,6 +175,8 @@ def startStictching():
 	return
 
 def stictchFrames(frameLeft, frameMid, frameRight):
+	frameLeftRGB = frameLeft
+	frameMidRGB  = frameMid
 	# TODO: use frameMid's perspective, warp frameLeft and frameRight
 	# return combined frame
 
@@ -143,22 +189,17 @@ def stictchFrames(frameLeft, frameMid, frameRight):
 	# Find 
 	left_features, left_descs = detector.detectAndCompute(frameLeft, None)
 	mid_features, mid_descs = detector.detectAndCompute(frameMid, None)
-	right_features, right_descs = detector.detectAndCompute(frameRight, None)
+	# right_features, right_descs = detector.detectAndCompute(frameRight, None)
 
 	# Use Flann Matcher
 	FLANN_INDEX_KDTREE = 1  # bug: flann enums are missing
-	flann_params = dict(algorithm = FLANN_INDEX_KDTREE, 
-	trees = 5)
+	flann_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 5)
 	matcher = cv2.FlannBasedMatcher(flann_params, {})
 
 	# Match Left and Mid
 	matches_left_mid = matcher.knnMatch(left_descs, trainDescriptors=mid_descs, k=2)
-	matches_right_mid = matcher.knnMatch(right_descs, trainDescriptors=mid_descs, k=2)
+	# matches_right_mid = matcher.knnMatch(right_descs, trainDescriptors=mid_descs, k=2)
 
-	print len(matches_left_mid)
-
-	
-	
 	# min_distance = 100
 	# max_distance = 0
 
@@ -180,10 +221,11 @@ def stictchFrames(frameLeft, frameMid, frameRight):
 	# print "matches_subset:", len(matches_subset)
 
 	matches_subset = filter_matches(matches_left_mid)
-	matches_subset = sorted(matches_subset, key= lambda match: match.distance)
-	print len(matches_subset)
-	img3 = drawMatches(frameLeft,left_features,frameMid,mid_features,matches_subset[:10])
-	cv2.imwrite("temp.jpg", img3)
+	
+	# matches_subset = sorted(matches_subset, key= lambda match: match.distance)
+	# print len(matches_subset)
+	# img3 = drawMatches(frameLeft,left_features,frameMid,mid_features,matches_subset[:10])
+	# cv2.imwrite("temp.jpg", img3)
 	# raise ValueError
 	
 	kp1 = []
@@ -201,12 +243,44 @@ def stictchFrames(frameLeft, frameMid, frameRight):
 
 	H, status = cv2.findHomography(p1, p2, cv2.RANSAC, 5.0)
 
-	print H
+	H = H / H[2, 2]
 	H_inv = np.linalg.inv(H)
 
-	warped_frame_left = cv2.warpPerspective(frameLeft, H_inv, (frameLeft.shape[1], frameLeft.shape[0]))
-	cv2.imwrite("warped_frame_left.jpg", warped_frame_left)
-	cv2.imshow("warped_frame_left", warped_frame_left)
+	(min_x, min_y, max_x, max_y) = findDimensions(frameLeft, H_inv)
+	max_x = max(max_x, frameMid.shape[1])
+	max_y = max(max_y, frameMid.shape[0])
+
+	move_h = np.matrix(np.identity(3), np.float32)
+    
+	if ( min_x < 0 ):
+		move_h[0,2] += -min_x
+		max_x += -min_x
+
+	if ( min_y < 0 ):
+		move_h[1,2] += -min_y
+		max_y += -min_y
+
+	mod_inv_h = move_h * H_inv
+    
+	img_w = int(math.ceil(max_x))
+	img_h = int(math.ceil(max_y))
+
+	warped_frame_mid  = cv2.warpPerspective(frameMidRGB, move_h, (img_w, img_h))
+	warped_frame_left = cv2.warpPerspective(frameLeftRGB, mod_inv_h, (img_w, img_h))
+
+	enlarged_mid_img = np.zeros((img_h, img_w, 3), np.uint8)
+
+	(ret,data_map) = cv2.threshold(cv2.cvtColor(warped_frame_left, cv2.COLOR_BGR2GRAY), 
+        0, 255, cv2.THRESH_BINARY)
+    
+	enlarged_mid_img = cv2.add(enlarged_mid_img, warped_frame_mid, 
+        mask=np.bitwise_not(data_map), 
+        dtype=cv2.CV_8U)
+
+	final_img = cv2.add(enlarged_mid_img, warped_frame_left, dtype=cv2.CV_8U)
+
+	# cv2.imwrite("warped_frame_left.jpg", warped_frame_left)
+	cv2.imshow("warped_frame_left", final_img)
 	cv2.waitKey(0)
 	return
 
