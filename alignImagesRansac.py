@@ -5,7 +5,6 @@ import sys
 import cv2
 import math
 import numpy as np
-import utils
 
 from numpy import linalg
 
@@ -23,7 +22,7 @@ class AlignImagesRansac(object):
         '''
     
         self.key_frame_file = os.path.split(key_frame)[-1]
-        self.output_dir = output_dir
+        self.output_dir = output_dir    
         
         
         # Open the directory given in the arguments
@@ -353,8 +352,8 @@ class AlignImagesRansac(object):
 
  # ----------------------------------------------------------------------------
 if __name__ == '__main__':
-    if ( len(args) < 4 ):
+    if ( len(sys.argv) < 4 ):
         print >> sys.stderr, ("Usage: %s <image_dir> <key_frame> <output>" % args[0])
         sys.exit(-1)
-    AlignImagesRansac(sys.args[1:])
+    AlignImagesRansac(sys.argv[1], sys.argv[2], sys.argv[3])
 
