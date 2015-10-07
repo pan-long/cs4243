@@ -31,14 +31,14 @@ def startStictching():
 
 	return
 
-def stichFrames(frameLeft, frameMid, frameRight):
+def stictchFrames(frameLeft, frameMid, frameRight):
 	# TODO: use frameMid's perspective, warp frameLeft and frameRight
 	# return combined frame
 	return
 
 def main():
 	# print cv2.__version__
-	stictchFrames();
+	startStictching();
 
 if __name__ == "__main__":
 	main()
