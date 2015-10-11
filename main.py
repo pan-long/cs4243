@@ -1,5 +1,6 @@
 import cv2
 import cv2.cv as cv
+
 from Stitcher import Stitcher
 
 videos_path = 'videos/'
@@ -29,6 +30,7 @@ def main():
     cap_left.release()
     cap_mid.release()
     cap_right.release()
+
 
 if __name__ == '__main__':
     main()
