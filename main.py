@@ -14,7 +14,7 @@ def main():
     cap_right = cv2.VideoCapture(videos_path + videos[2])
 
     frame_count = int(cap_mid.get(cv.CV_CAP_PROP_FRAME_COUNT))
-    for fr in range(1):
+    for fr in range(frame_count):
         status_left, frame_left = cap_left.read()
         status_mid, frame_mid = cap_mid.read()
         status_right, frame_right = cap_right.read()
