@@ -1,6 +1,7 @@
 import cv2
 import cv2.cv as cv
 
+from BackgroundExt import BackgroundExt
 from Stitcher import Stitcher
 
 videos_path = 'videos/'
@@ -9,12 +10,14 @@ videos = ['football_left.mp4', 'football_mid.mp4', 'football_right.mp4']
 
 def main():
     stitcher = Stitcher()
+    background_ext = BackgroundExt()
 
     cap_left = cv2.VideoCapture(videos_path + videos[0])
     cap_mid = cv2.VideoCapture(videos_path + videos[1])
     cap_right = cv2.VideoCapture(videos_path + videos[2])
 
     frame_count = int(cap_mid.get(cv.CV_CAP_PROP_FRAME_COUNT))
+
     for fr in range(frame_count):
         status_left, frame_left = cap_left.read()
         status_mid, frame_mid = cap_mid.read()
