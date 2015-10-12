@@ -135,7 +135,7 @@ class Stitcher(object):
         return H
 
 
-    def stitch(self, base_img, img_to_stitch):
+    def stitch(self, base_img, img_to_stitch, homography=None):
         """
         Stitch img_to_stitch to base_img.
         :param base_img: The base image to which the img_to_stitch is going to be stitched on.
@@ -144,7 +144,10 @@ class Stitcher(object):
 
         Note that the black part of the warped image will be chopped after stitching.
         """
-        H = self.find_homography(base_img, img_to_stitch)
+        if homography is None:
+            H = self.find_homography(base_img, img_to_stitch)
+        else:
+            H = homography
         H = H / H[2, 2]
         H_inv = la.inv(H)
 
