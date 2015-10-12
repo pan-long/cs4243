@@ -5,6 +5,9 @@ import cv2.cv as cv
 
 
 class BackgroundExt(object):
+    """
+    Extract the background by averaging all the frames.
+    """
     def extract_background(self, video_capture):
         frame_width = int(video_capture.get(cv.CV_CAP_PROP_FRAME_WIDTH))
         frame_height = int(video_capture.get(cv.CV_CAP_PROP_FRAME_HEIGHT))

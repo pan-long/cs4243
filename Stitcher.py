@@ -93,6 +93,48 @@ class Stitcher(object):
 
         return (min_x, min_y, max_x, max_y)
 
+    def find_homography(self, base_img, img_to_match):
+        """
+        Find the homography from img_to_match to base_img.
+        :param base_img: The base image used to find homography.
+        :param img_to_match: The target image that is going to be matched with base image.
+        :return: The 3x3 homography matrix.
+        """
+        # Convert the base_img to grayscale
+        base_img_grayscale = cv2.GaussianBlur(cv2.cvtColor(base_img, cv2.COLOR_BGR2GRAY), self.Gaussian_ksize, 0)
+
+        # Convert the img_to_stitch to grayscale.
+        img_to_match_grayscale = cv2.GaussianBlur(cv2.cvtColor(img_to_match, cv2.COLOR_BGR2GRAY),
+                                                                self.Gaussian_ksize, 0)
+
+        # Detect and compute the features in 2 images.
+        img_to_match_features, img_to_match_descs = self.detector.detectAndCompute(img_to_match_grayscale, None)
+        base_img_features, base_img_descs = self.detector.detectAndCompute(base_img_grayscale, None)
+
+
+        # Match the features in 2 images.
+        matches = self.matcher.knnMatch(img_to_match_descs, trainDescriptors=base_img_descs,
+                                   k=self.count_for_best_matches_in_knn)
+
+        # Filter out the best matches using the default threshold.
+        matches_filtered = self.filter_matches(matches)
+
+        base_img_features_filtered = []
+        img_to_match_features_filtered = []
+
+        for match in matches_filtered:
+            base_img_features_filtered.append(base_img_features[match.trainIdx])
+            img_to_match_features_filtered.append(img_to_match_features[match.queryIdx])
+
+        base_img_features_points = np.array([f.pt for f in base_img_features_filtered])
+        img_to_match_features_points = np.array([f.pt for f in img_to_match_features_filtered])
+
+        # Find out the homography matrix from 2 sets of feature points.
+        H, status = cv2.findHomography(base_img_features_points, img_to_match_features_points, cv2.RANSAC,
+                                       self.ransac_reprojection_threshold)
+        return H
+
+
     def stitch(self, base_img, img_to_stitch):
         """
         Stitch img_to_stitch to base_img.
@@ -102,38 +144,7 @@ class Stitcher(object):
 
         Note that the black part of the warped image will be chopped after stitching.
         """
-        # Convert the base_img to grayscale
-        base_img_grayscale = cv2.GaussianBlur(cv2.cvtColor(base_img, cv2.COLOR_BGR2GRAY), self.Gaussian_ksize, 0)
-
-        # Convert the img_to_stitch to grayscale.
-        img_to_stitch_grayscale = cv2.GaussianBlur(cv2.cvtColor(img_to_stitch, cv2.COLOR_BGR2GRAY),
-                                                                self.Gaussian_ksize, 0)
-
-        # Detect and compute the features in 2 images.
-        img_to_stitch_features, img_to_stitch_descs = self.detector.detectAndCompute(img_to_stitch_grayscale, None)
-        base_img_features, base_img_descs = self.detector.detectAndCompute(base_img_grayscale, None)
-
-
-        # Match the features in 2 images.
-        matches = self.matcher.knnMatch(img_to_stitch_descs, trainDescriptors=base_img_descs,
-                                   k=self.count_for_best_matches_in_knn)
-
-        # Filter out the best matches using the default threshold.
-        matches_filtered = self.filter_matches(matches)
-
-        base_img_features_filtered = []
-        img_to_stitch_features_filtered = []
-
-        for match in matches_filtered:
-            base_img_features_filtered.append(base_img_features[match.trainIdx])
-            img_to_stitch_features_filtered.append(img_to_stitch_features[match.queryIdx])
-
-        base_img_features_points = np.array([f.pt for f in base_img_features_filtered])
-        img_to_stitch_features_points = np.array([f.pt for f in img_to_stitch_features_filtered])
-
-        # Find out the homography matrix from 2 sets of feature points.
-        H, status = cv2.findHomography(base_img_features_points, img_to_stitch_features_points, cv2.RANSAC,
-                                       self.ransac_reprojection_threshold)
+        H = self.find_homography(base_img, img_to_stitch)
         H = H / H[2, 2]
         H_inv = la.inv(H)
 
