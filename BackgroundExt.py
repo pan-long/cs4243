@@ -23,11 +23,11 @@ class BackgroundExt(object):
         :param image: The image added
         :return: The background after adding this new image.
         """
+        print(self.number_of_images)
         if self.background_img is None:
             self.background_img = image
         else:
             self.background_img = self.number_of_images / (self.number_of_images + 1.) * self.background_img + \
                                   1. / (self.number_of_images + 1.) * image
-            self.background_img = cv2.convertScaleAbs(self.background_img)
         self.number_of_images += 1
-        return self.background_img
+        return cv2.convertScaleAbs(self.background_img)
