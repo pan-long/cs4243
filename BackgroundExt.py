@@ -23,7 +23,6 @@ class BackgroundExt(object):
         :param image: The image added
         :return: The background after adding this new image.
         """
-        print(self.number_of_images)
         if self.background_img is None:
             self.background_img = image
         else:
