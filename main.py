@@ -17,6 +17,18 @@ H_mid_right = np.array([[-1.23516364e+00, -1.41395849e-01, 1.62674397e+03],
                         [-8.41283372e-02, -1.16214461e+00, 1.35519101e+02],
                         [-1.60078790e-03, -5.02481792e-05, 1.00000000e+00]])
 
+crop_image_rect = {'min_x': 200, 'max_x': 2300, 'min_y': 100, 'max_y': 350}
+
+
+def crop_img(img):
+    """
+    Crop the black area after warping images together.
+    :param img: The image to be cropped
+    :return: The cropped image.
+    """
+    # TODO: Detect the black area and crop smartly.
+    return img[crop_image_rect['min_y']:crop_image_rect['max_y'], crop_image_rect['min_x']: crop_image_rect['max_x']]
+
 
 def main():
     stitcher = Stitcher()
@@ -42,7 +54,8 @@ def main():
         if status_left and status_mid and status_right:
             warped_left_mid = stitcher.stitch(frame_mid, frame_left, H_left_mid)
             warped_left_mid_right = stitcher.stitch(warped_left_mid, frame_right, H_mid_right)
-            cv2.imshow('Warped all', warped_left_mid_right)
+            warped_left_mid_right_cropped = crop_img(warped_left_mid_right)
+            cv2.imshow('Warped all', warped_left_mid_right_cropped)
             cv2.waitKey(30)
 
     cv2.waitKey(0)
