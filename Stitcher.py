@@ -105,7 +105,7 @@ class Stitcher(object):
 
         # Convert the img_to_stitch to grayscale.
         img_to_match_grayscale = cv2.GaussianBlur(cv2.cvtColor(img_to_match, cv2.COLOR_BGR2GRAY),
-                                                                self.Gaussian_ksize, 0)
+                                                  self.Gaussian_ksize, 0)
 
         # Detect and compute the features in 2 images.
         img_to_match_features, img_to_match_descs = self.detector.detectAndCompute(img_to_match_grayscale, None)
@@ -114,7 +114,7 @@ class Stitcher(object):
 
         # Match the features in 2 images.
         matches = self.matcher.knnMatch(img_to_match_descs, trainDescriptors=base_img_descs,
-                                   k=self.count_for_best_matches_in_knn)
+                                        k=self.count_for_best_matches_in_knn)
 
         # Filter out the best matches using the default threshold.
         matches_filtered = self.filter_matches(matches)
@@ -133,7 +133,6 @@ class Stitcher(object):
         H, status = cv2.findHomography(base_img_features_points, img_to_match_features_points, cv2.RANSAC,
                                        self.ransac_reprojection_threshold)
         return H
-
 
     def stitch(self, base_img, img_to_stitch, homography=None):
         """
@@ -189,31 +188,5 @@ class Stitcher(object):
         # Now add the warped image.
         final_img = cv2.add(enlarged_base_img, img_to_stitch_warp,
                             dtype=cv2.CV_8U)
-
-        # Crop off the black edges.
-        final_gray = cv2.cvtColor(final_img, cv2.COLOR_BGR2GRAY)
-        _, thresh = cv2.threshold(final_gray, 1, 255, cv2.THRESH_BINARY)
-        contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-
-        max_area = 0
-        best_rect = (0, 0, 0, 0)
-
-        for cnt in contours:
-            x, y, w, h = cv2.boundingRect(cnt)
-
-            deltaHeight = h - y
-            deltaWidth = w - x
-
-            area = deltaHeight * deltaWidth
-
-            if (area > max_area and deltaHeight > 0 and deltaWidth > 0):
-                max_area = area
-                best_rect = (x, y, w, h)
-
-        if (max_area > 0):
-            final_img_crop = final_img[best_rect[1]:best_rect[1] + best_rect[3],
-                             best_rect[0]:best_rect[0] + best_rect[2]]
-
-            final_img = final_img_crop
 
         return final_img
