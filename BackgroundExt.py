@@ -1,24 +1,33 @@
-import numpy as np
-
 import cv2
-import cv2.cv as cv
 
 
 class BackgroundExt(object):
     """
     Extract the background by averaging all the frames.
     """
-    def extract_background(self, video_capture):
-        frame_width = int(video_capture.get(cv.CV_CAP_PROP_FRAME_WIDTH))
-        frame_height = int(video_capture.get(cv.CV_CAP_PROP_FRAME_HEIGHT))
-        frame_count = int(video_capture.get(cv.CV_CAP_PROP_FRAME_COUNT))
 
-        _, img = video_capture.read()
-        result_img = np.float32(img)
+    def __init__(self):
+        self.reset()
 
-        for fc in range(frame_count):
-            _, frame = video_capture.read()
-            result_img = fc / (fc + 1.) * result_img + 1. / (fc + 1.) * frame
+    def reset(self):
+        """
+        Reset the extractor.
+        :return: None.
+        """
+        self.number_of_images = 0
+        self.background_img = None
 
-        normImg = cv2.convertScaleAbs(result_img)
-        return normImg
+    def add_image(self, image):
+        """
+        Add a new image in the image series.
+        :param image: The image added
+        :return: The background after adding this new image.
+        """
+        if self.background_img is None:
+            self.background_img = image
+        else:
+            self.background_img = self.number_of_images / (self.number_of_images + 1.) * self.background_img + \
+                                  1. / (self.number_of_images + 1.) * image
+            self.background_img = cv2.convertScaleAbs(self.background_img)
+        self.number_of_images += 1
+        return self.background_img

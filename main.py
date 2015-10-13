@@ -3,6 +3,8 @@ import numpy as np
 import cv2
 import cv2.cv as cv
 
+from BackgroundExt import BackgroundExt
+
 from Stitcher import Stitcher
 
 videos_path = 'videos/'
@@ -32,6 +34,7 @@ def crop_img(img):
 
 def main():
     stitcher = Stitcher()
+    background_ext = BackgroundExt()
 
     cap_left = cv2.VideoCapture(videos_path + videos[0])
     cap_mid = cv2.VideoCapture(videos_path + videos[1])
@@ -55,7 +58,8 @@ def main():
             warped_left_mid = stitcher.stitch(frame_mid, frame_left, H_left_mid)
             warped_left_mid_right = stitcher.stitch(warped_left_mid, frame_right, H_mid_right)
             warped_left_mid_right_cropped = crop_img(warped_left_mid_right)
-            cv2.imshow('Warped all', warped_left_mid_right_cropped)
+            background = background_ext.add_image(warped_left_mid_right_cropped)
+            cv2.imshow('Warped all', background)
             cv2.waitKey(30)
 
     cv2.waitKey(0)
