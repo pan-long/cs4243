@@ -1,8 +1,7 @@
+import cv2
+import math
 import numpy as np
 import numpy.linalg as la
-import math
-
-import cv2
 
 
 class Stitcher(object):
@@ -16,8 +15,7 @@ class Stitcher(object):
 
     # Use Flann Matcher.
     FLANN_INDEX_KDTREE = 1  # bug: flann enums are missing
-    flann_params = dict(algorithm=FLANN_INDEX_KDTREE,
-                        trees=5)
+    flann_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
     matcher = cv2.FlannBasedMatcher(flann_params, {})
     count_for_best_matches_in_knn = 2
 
@@ -101,7 +99,8 @@ class Stitcher(object):
         :return: The 3x3 homography matrix.
         """
         # Convert the base_img to grayscale
-        base_img_grayscale = cv2.GaussianBlur(cv2.cvtColor(base_img, cv2.COLOR_BGR2GRAY), self.Gaussian_ksize, 0)
+        base_img_grayscale = cv2.GaussianBlur(cv2.cvtColor(base_img, cv2.COLOR_BGR2GRAY), 
+                                                self.Gaussian_ksize, 0)
 
         # Convert the img_to_stitch to grayscale.
         img_to_match_grayscale = cv2.GaussianBlur(cv2.cvtColor(img_to_match, cv2.COLOR_BGR2GRAY),
