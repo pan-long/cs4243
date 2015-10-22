@@ -133,6 +133,56 @@ class Stitcher(object):
                                        self.ransac_reprojection_threshold)
         return H
 
+
+    def gaussian_pyramid(self, img):
+        G  = img.copy()
+        gp = [G]
+
+        for i in xrange(3):
+            G = cv2.pyrDown(G)
+            gp.append(G)
+
+        return gp
+
+
+    def laplacian_pyramid(self, img):
+        gp = self.gaussian_pyramid(img)
+        lp = [gp[2]]
+
+        for i in xrange(2, 0, -1):
+            GE = cv2.pyrUp(gp[i])
+            # print gp[i-1].shape, GE.shape
+            L = cv2.subtract(gp[i-1], GE)
+            lp.append(L)
+
+        return lp
+
+
+    def img_blending(self, left, right):
+        LS = []
+        
+        left_rows, left_cols, left_dept = left.shape
+        right_rows, right_cols, right_dept = left.shape
+
+        min_rows = min(left_rows, right_rows)
+        min_cols = min(left_cols, right_cols)
+
+        if (min_rows % 32 != 0):
+            min_rows -= (min_rows % 32)
+        if (min_cols % 32 != 0):
+            min_cols -= (min_cols % 32)
+
+        # blending left, mid
+        LA = self.laplacian_pyramid(left[0:min_rows, 0:min_cols])
+        LB = self.laplacian_pyramid(right[0:min_rows, 0:min_cols])
+        for la, lb in zip(LA, LB):
+            rows,cols,dpt = la.shape
+            ls = la + lb
+            LS.append(ls)
+
+        return LS
+
+
     def stitch(self, base_img, img_to_stitch, homography=None):
         """
         Stitch img_to_stitch to base_img.
@@ -185,7 +235,18 @@ class Stitcher(object):
                                     dtype=cv2.CV_8U)
 
         # Now add the warped image.
-        final_img = cv2.add(enlarged_base_img, img_to_stitch_warp,
-                            dtype=cv2.CV_8U)
+        LS = self.img_blending(img_to_stitch_warp, enlarged_base_img)
+        final_img = LS[0]
+        for i in xrange(1,3):
+            cv2.imshow('ssss', final_img);
+            cv2.waitKey(0)
+            final_img = cv2.pyrUp(final_img)
+            final_img = cv2.add(final_img, LS[i])
+        
+        # final_img = cv2.add(enlarged_base_img, img_to_stitch_warp,
+        #                     dtype=cv2.CV_8U)
+
+        cv2.imshow('xxxx', final_img);
+        cv2.waitKey(0)
 
         return final_img
