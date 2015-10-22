@@ -25,9 +25,9 @@ else:
     H_left_mid = np.array([[4.17965460e-01, -2.08590564e-01, 1.58840805e+03],
                            [1.60253386e-02, 9.58337855e-01, 5.44518571e+01],
                            [-3.16345544e-04, 1.24986859e-05, 1.00000000e+00]])
-    H_mid_right = np.array([[4.17965460e-01, -2.08590564e-01, 1.58840805e+03],
-                            [1.60253386e-02, 9.58337855e-01, 5.44518571e+01],
-                            [-3.16345544e-04, 1.24986859e-05, 1.00000000e+00]])
+    H_mid_right = np.array([[-1.20474129e+00, -1.40161277e-01, 6.45227999e+03],
+                            [-8.11346378e-02, -1.12980266e+00, 5.25837708e+02],
+                            [-3.88404089e-04, -1.04585070e-05, 1.00000000e+00]])
     crop_image_rect = {'min_x': 800, 'max_x': 9200, 'min_y': 400, 'max_y': 1400}
 
 
@@ -72,13 +72,12 @@ def main():
             warped_left_mid = stitcher.stitch(frame_mid, frame_left, H_left_mid)
             warped_left_mid_right = stitcher.stitch(warped_left_mid, frame_right, H_mid_right)
             warped_left_mid_right_cropped = crop_img(warped_left_mid_right)
-            cv2.imwrite('football_field.png', warped_left_mid_right_cropped)
-            # background = background_ext.apply(warped_left_mid_right_cropped)
-            # cv2.imshow('Objects', background)
-            # cv2.waitKey(30)
+            background = background_ext.apply(warped_left_mid_right_cropped)
+            cv2.imshow('Objects', background)
+            cv2.waitKey(30)
 
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
     cap_left.release()
     cap_mid.release()
     cap_right.release()

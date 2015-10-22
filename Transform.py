@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 def main():
 	image = cv2.imread('football_field.png')
 
-	pts = np.float32([[680, 38], [1285, 32], [2095, 225], [3, 235]])
+	pts = np.float32([[2881, 153], [5177, 139], [8398, 893], [26, 949]])
 	warped = transform(image, pts)
 
 	cv2.imwrite('output/transformed.png', warped)
@@ -13,7 +13,7 @@ def main():
 	plt.figure()
 	plt.imshow(image)
 	plt.hold(True)
-	plt.scatter([680, 1285, 3, 2095], [38, 32, 235, 225], color='red')
+	plt.scatter([2881, 5177, 26, 8398], [153, 139, 949, 893], color='red')
 	plt.show()
 
 
