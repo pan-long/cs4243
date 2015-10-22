@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 import cv2.cv as cv
-from BackgroundExt import BackgroundExt
 
 from Stitcher import Stitcher
 from ObjectsExt import ObjectsExt
@@ -48,9 +47,8 @@ def main():
         background = cv2.imread('background_scaled.jpg')
     else:
         background = cv2.imread('background.jpg')
-    background_ext = BackgroundExt()
-    # background_ext = cv2.BackgroundSubtractorMOG2()
-    # background_ext.apply(background)
+    background_ext = cv2.BackgroundSubtractorMOG2()
+    background_ext.apply(background)
 
     cap_left = cv2.VideoCapture(videos_path + videos[0])
     cap_mid = cv2.VideoCapture(videos_path + videos[1])
@@ -78,7 +76,6 @@ def main():
             cv2.imshow('Objects', background)
             cv2.waitKey(30)
 
-    cv2.imwrite('background.jpg', background)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
     cap_left.release()
