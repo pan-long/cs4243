@@ -3,24 +3,31 @@ import numpy as np
 import cv2
 import cv2.cv as cv
 
-from BackgroundExt import BackgroundExt
-from ObjectsExt import ObjectsExt
-
 from Stitcher import Stitcher
 
 videos_path = 'videos/'
 videos = ['football_left.mp4', 'football_mid.mp4', 'football_right.mp4']
 
-image_down_scale_factor = 4
+config_scale = False
 
-H_left_mid = np.array([[4.27846244e-01, -2.25290426e-01, 3.97710942e+02],
-                       [1.88683929e-02, 9.48302837e-01, 1.40909737e+01],
-                       [-1.22572919e-03, 2.10230845e-05, 1.00000000e+00]])
-H_mid_right = np.array([[-1.23516364e+00, -1.41395849e-01, 1.62674397e+03],
-                        [-8.41283372e-02, -1.16214461e+00, 1.35519101e+02],
-                        [-1.60078790e-03, -5.02481792e-05, 1.00000000e+00]])
-
-crop_image_rect = {'min_x': 200, 'max_x': 2300, 'min_y': 100, 'max_y': 350}
+if config_scale:
+    image_down_scale_factor = 4
+    H_left_mid = np.array([[4.27846244e-01, -2.25290426e-01, 3.97710942e+02],
+                           [1.88683929e-02, 9.48302837e-01, 1.40909737e+01],
+                           [-1.22572919e-03, 2.10230845e-05, 1.00000000e+00]])
+    H_mid_right = np.array([[-1.23516364e+00, -1.41395849e-01, 1.62674397e+03],
+                            [-8.41283372e-02, -1.16214461e+00, 1.35519101e+02],
+                            [-1.60078790e-03, -5.02481792e-05, 1.00000000e+00]])
+    crop_image_rect = {'min_x': 200, 'max_x': 2300, 'min_y': 100, 'max_y': 350}
+else:
+    image_down_scale_factor = 1
+    H_left_mid = np.array([[4.17965460e-01, -2.08590564e-01, 1.58840805e+03],
+                           [1.60253386e-02, 9.58337855e-01, 5.44518571e+01],
+                           [-3.16345544e-04, 1.24986859e-05, 1.00000000e+00]])
+    H_mid_right = np.array([[4.17965460e-01, -2.08590564e-01, 1.58840805e+03],
+                            [1.60253386e-02, 9.58337855e-01, 5.44518571e+01],
+                            [-3.16345544e-04, 1.24986859e-05, 1.00000000e+00]])
+    crop_image_rect = {'min_x': 800, 'max_x': 9200, 'min_y': 400, 'max_y': 1400}
 
 
 def crop_img(img):
@@ -35,10 +42,12 @@ def crop_img(img):
 
 def main():
     stitcher = Stitcher()
-    background = cv2.imread('background.jpg')
+    if config_scale:
+        background = cv2.imread('background_scaled.jpg')
+    else:
+        background = cv2.imread('background.jpg')
     background_ext = cv2.BackgroundSubtractorMOG2()
     background_ext.apply(background)
-    # objects_ext = ObjectsExt(background)
 
     cap_left = cv2.VideoCapture(videos_path + videos[0])
     cap_mid = cv2.VideoCapture(videos_path + videos[1])
@@ -63,7 +72,6 @@ def main():
             warped_left_mid_right = stitcher.stitch(warped_left_mid, frame_right, H_mid_right)
             warped_left_mid_right_cropped = crop_img(warped_left_mid_right)
             background = background_ext.apply(warped_left_mid_right_cropped)
-            # objects_img = objects_ext.extract_objects(warped_left_mid_right_cropped)
             cv2.imshow('Objects', background)
             cv2.waitKey(30)
 
