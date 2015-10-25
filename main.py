@@ -7,7 +7,7 @@ from ObjectsExt import ObjectsExt
 from BackgroundExt import BackgroundExt
 
 videos_path = 'videos/'
-videos = ['football_left.mov', 'football_mid.mov', 'football_right.mov']
+videos = ['football_left.mp4', 'football_mid.mp4', 'football_right.mp4']
 
 config_scale = False
 
@@ -58,7 +58,7 @@ def main():
     frame_height = int(cap_mid.get(cv.CV_CAP_PROP_FRAME_HEIGHT))
     frame_count = int(cap_mid.get(cv.CV_CAP_PROP_FRAME_COUNT))
 
-    for fr in range(1):
+    for fr in range(frame_count):
         status_left, frame_left = cap_left.read()
         status_mid, frame_mid = cap_mid.read()
         status_right, frame_right = cap_right.read()
@@ -73,7 +73,7 @@ def main():
             warped_left_mid_right = stitcher.stitch(warped_left_mid, frame_right, H_mid_right)
             warped_left_mid_right_cropped = crop_img(warped_left_mid_right)
             background = background_ext.apply(warped_left_mid_right_cropped)
-            cv2.imshow('Objects', background)
+            cv2.imshow('Objects', warped_left_mid_right_cropped)
             cv2.waitKey(30)
 
     cv2.waitKey(0)
