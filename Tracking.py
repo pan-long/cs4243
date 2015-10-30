@@ -1,15 +1,6 @@
 import cv2
 import numpy as np
 
-lowH  = 75
-highH = 130
-
-lowS  = 0
-highS = 255
-
-lowV  = 0
-highV = 255
-
 def tracking(img):
 	kernel = np.ones((3, 3), np.uint8)
 	img_thresholded = cv2.erode(img, kernel, iterations = 1)
