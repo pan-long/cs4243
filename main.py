@@ -7,7 +7,7 @@ from ObjectsExt import ObjectsExt
 from BackgroundExt import BackgroundExt
 
 videos_path = 'videos/'
-videos = ['football_left.mov', 'football_mid.mov', 'football_right.mov']
+videos = ['football_left.mp4', 'football_mid.mp4', 'football_right.mp4']
 
 config_scale = False
 
