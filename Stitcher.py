@@ -235,9 +235,9 @@ class Stitcher(object):
                                     dtype=cv2.CV_8U)
 
         # Now add the warped image.
-        # LS = self.img_blending(img_to_stitch_warp, enlarged_base_img)
+        # LS = img_blending(img_to_stitch_warp, enlarged_base_img)
         # final_img = LS[0]
-        # for i in xrange(1,3):
+        # for i in xrange(1,4):
         #     final_img = cv2.pyrUp(final_img)
         #     final_img = cv2.add(final_img, LS[i])
         

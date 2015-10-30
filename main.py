@@ -3,10 +3,11 @@ import numpy as np
 import cv2
 import cv2.cv as cv
 
+from Tracking import tracking
 from Stitcher import Stitcher
 
 videos_path = 'videos/'
-videos = ['football_left.mp4', 'football_mid.mp4', 'football_right.mp4']
+videos = ['football_left.mov', 'football_mid.mov', 'football_right.mov']
 
 config_scale = True
 
@@ -72,10 +73,10 @@ def main():
             warped_left_mid_right = stitcher.stitch(warped_left_mid, frame_right, H_mid_right)
             warped_left_mid_right_cropped = crop_img(warped_left_mid_right)
             background = background_ext.apply(warped_left_mid_right_cropped)
+            background = tracking(background)
             cv2.imshow('Objects', background)
             cv2.waitKey(30)
 
-    cv2.imwrite('background_scaled.jpg', background)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
     cap_left.release()
