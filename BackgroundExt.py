@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 
 
 class BackgroundExt(object):
@@ -23,6 +24,7 @@ class BackgroundExt(object):
         :param image: The image added
         :return: The background after adding this new image.
         """
+        image = np.asarray(image)
         if self.background_img is None:
             self.background_img = image
         else:

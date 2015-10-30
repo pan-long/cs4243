@@ -1,15 +1,14 @@
-import cv2
 import numpy as np
+
+import cv2
 import cv2.cv as cv
 
 from Stitcher import Stitcher
-from ObjectsExt import ObjectsExt
-from BackgroundExt import BackgroundExt
 
 videos_path = 'videos/'
 videos = ['football_left.mp4', 'football_mid.mp4', 'football_right.mp4']
 
-config_scale = False
+config_scale = True
 
 if config_scale:
     image_down_scale_factor = 4
@@ -58,7 +57,7 @@ def main():
     frame_height = int(cap_mid.get(cv.CV_CAP_PROP_FRAME_HEIGHT))
     frame_count = int(cap_mid.get(cv.CV_CAP_PROP_FRAME_COUNT))
 
-    for fr in range(1):
+    for fr in range(frame_count):
         status_left, frame_left = cap_left.read()
         status_mid, frame_mid = cap_mid.read()
         status_right, frame_right = cap_right.read()
@@ -76,6 +75,7 @@ def main():
             cv2.imshow('Objects', background)
             cv2.waitKey(30)
 
+    cv2.imwrite('background_scaled.jpg', background)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
     cap_left.release()
