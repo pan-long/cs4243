@@ -7,7 +7,7 @@ from ObjectsExt import ObjectsExt
 from BackgroundExt import BackgroundExt
 
 videos_path = 'videos/'
-videos = ['football_left.mov', 'football_mid.mov', 'football_right.mov']
+videos = ['football_left.mp4', 'football_mid.mp4', 'football_right.mp4']
 
 config_scale = False
 
@@ -42,6 +42,14 @@ def crop_img(img):
 
 
 def main():
+    bg = cv2.imread('final_back_ground_2.jpg')
+    ext = BackgroundExt()
+    # ext.background_img = bg
+    # ext.number_of_images = 715
+
+
+    # raise ValueError
+
     stitcher = Stitcher()
     if config_scale:
         background = cv2.imread('background_scaled.jpg')
@@ -49,6 +57,8 @@ def main():
         background = cv2.imread('background.jpg')
     background_ext = cv2.BackgroundSubtractorMOG2()
     background_ext.apply(background)
+
+    background_extractor = BackgroundExt()
 
     cap_left = cv2.VideoCapture(videos_path + videos[0])
     cap_mid = cv2.VideoCapture(videos_path + videos[1])
@@ -58,7 +68,15 @@ def main():
     frame_height = int(cap_mid.get(cv.CV_CAP_PROP_FRAME_HEIGHT))
     frame_count = int(cap_mid.get(cv.CV_CAP_PROP_FRAME_COUNT))
 
-    for fr in range(1):
+    print "frame_count:", frame_count
+
+
+    # for fr in np.arange(0, frame_count,1):
+    for fr in np.arange(3840, 4300,1): # for background ext, get rid of the goal keeper
+        cap_left.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
+        cap_mid.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
+        cap_right.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
+        print "count:", fr 
         status_left, frame_left = cap_left.read()
         status_mid, frame_mid = cap_mid.read()
         status_right, frame_right = cap_right.read()
@@ -72,10 +90,23 @@ def main():
             warped_left_mid = stitcher.stitch(frame_mid, frame_left, H_left_mid)
             warped_left_mid_right = stitcher.stitch(warped_left_mid, frame_right, H_mid_right)
             warped_left_mid_right_cropped = crop_img(warped_left_mid_right)
-            background = background_ext.apply(warped_left_mid_right_cropped)
-            cv2.imshow('Objects', background)
-            cv2.waitKey(30)
+            # background = background_ext.apply(warped_left_mid_right_cropped)
+            # background_extractor.add_image(warped_left_mid_right_cropped)
+            ext.add_image(warped_left_mid_right_cropped)
 
+            # cv2.imshow('temp background', cv2.convertScaleAbs(ext.background_img))
+            # cv2.imshow('warped_left_mid_right_cropped',warped_left_mid_right_cropped)
+            # cv2.waitKey(3)
+            # if(fr % 1000 == 0):
+                # cv2.imshow('temp background', cv2.convertScaleAbs(background_extractor.background_img))
+                # cv2.imwrite("final_back_ground_full_fr.jpg", cv2.convertScaleAbs(background_extractor.background_img))
+            # # cv2.imshow('Objects', background)
+            # cv2.waitKey(3)
+            
+
+    # cv2.imwrite("final_back_ground_full_fr.jpg", cv2.convertScaleAbs(background_extractor.background_img))
+    cv2.imwrite("final_back_ground_3.jpg", cv2.convertScaleAbs(ext.background_img))
+    cv2.imshow("after mannually pick frame for average background:", cv2.convertScaleAbs(ext.background_img))
     cv2.waitKey(0)
     cv2.destroyAllWindows()
     cap_left.release()
