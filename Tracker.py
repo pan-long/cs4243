@@ -4,15 +4,16 @@ from functools import partial
 import cv2
 import numpy as np
 
-mask_scaled = ((2, 234), (2094, 225), (1273, 40), (698, 40))
-mask = ((26, 949), (8398, 893), (5177, 139), (2881, 153))
 
 class Tracker(object):
+    mask_scaled = ((2, 234), (2094, 225), (1273, 40), (698, 40))
+    mask = ((26, 949), (8398, 893), (5177, 139), (2881, 153))
+
     def __init__(self, is_scaled):
         if is_scaled:
-            self.mask_points = mask_scaled
+            self.mask_points = self.mask_scaled
         else:
-            self.mask_points = mask
+            self.mask_points = self.mask
 
     def tracking(self, img):
         lower_left, lower_right, upper_right, upper_left = self.mask_points
