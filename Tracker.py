@@ -32,8 +32,11 @@ class Tracker(object):
                     if j < x_left_boundary or j > x_right_boundary:
                         img[i, j] = 0
 
-        kernel = np.ones((3, 3), np.uint8)
-        img_thresholded = cv2.erode(img, kernel, iterations=1)
+        # Remove noise and shadows
+        _, img_thresholded = cv2.threshold(img, 200, 255, cv.CV_THRESH_BINARY)
+
+        kernel = np.ones((2, 2), np.uint8)
+        img_thresholded = cv2.erode(img_thresholded, kernel, iterations=1)
         img_thresholded = cv2.dilate(img_thresholded, kernel, iterations=1)
 
         img_thresholded = cv2.dilate(img_thresholded, kernel, iterations=1)
@@ -44,9 +47,6 @@ class Tracker(object):
         centers = map(partial(np.mean, axis=0), contours)
         feet_points = map(partial(np.amax, axis=0), contours)
 
-        img_tracking_points = np.zeros((height, width), np.uint8)
+        tracking_points = np.array([(center[0][1], feet_point[0][0]) for center, feet_point in zip(centers, feet_points)], np.uint)
 
-        for center, feet_point in zip(centers, feet_points):
-            img_tracking_points[center[0][1], feet_point[0][0]] = 255
-
-        return img_tracking_points
+        return tracking_points

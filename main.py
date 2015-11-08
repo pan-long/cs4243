@@ -8,7 +8,7 @@ from Tracker import Tracker
 videos_path = 'videos/'
 videos = ['football_left.mp4', 'football_mid.mp4', 'football_right.mp4']
 
-config_scale = True
+config_scale = False
 
 if config_scale:
     image_down_scale_factor = 4
@@ -74,8 +74,10 @@ def main():
             warped_left_mid_right = stitcher.stitch(warped_left_mid, frame_right, H_mid_right)
             warped_left_mid_right_cropped = crop_img(warped_left_mid_right)
             background = background_ext.apply(warped_left_mid_right_cropped)
-            background = tracker.tracking(background)
-            cv2.imshow('Objects', background)
+            points = tracker.tracking(background)
+            for pt in points:
+                cv2.circle(warped_left_mid_right_cropped, (pt[1], pt[0]), 3, (0, 0, 255), -1)
+            cv2.imshow('Objects', warped_left_mid_right_cropped)
             cv2.waitKey(30)
 
     cv2.waitKey(0)
