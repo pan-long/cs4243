@@ -1,13 +1,12 @@
-import numpy as np
-
 import cv2
 import cv2.cv as cv
+import numpy as np
 
-from Tracking import tracking
 from Stitcher import Stitcher
+from Tracking import tracking
 
 videos_path = 'videos/'
-videos = ['football_left.mov', 'football_mid.mov', 'football_right.mov']
+videos = ['football_left.mp4', 'football_mid.mp4', 'football_right.mp4']
 
 config_scale = True
 
@@ -22,9 +21,9 @@ if config_scale:
     crop_image_rect = {'min_x': 200, 'max_x': 2300, 'min_y': 100, 'max_y': 350}
 else:
     image_down_scale_factor = 1
-    H_left_mid = np.array([[  4.48586889e-01,  -2.05408064e-01,   1.58586590e+03],
-                           [  3.11830929e-02,   9.58631698e-01,   5.31001193e+01],
-                           [ -3.02387986e-04,   1.19548345e-05,   1.00000000e+00]])
+    H_left_mid = np.array([[4.48586889e-01, -2.05408064e-01, 1.58586590e+03],
+                           [3.11830929e-02, 9.58631698e-01, 5.31001193e+01],
+                           [-3.02387986e-04, 1.19548345e-05, 1.00000000e+00]])
     H_mid_right = np.array([[-1.20474129e+00, -1.40161277e-01, 6.45227999e+03],
                             [-8.11346378e-02, -1.12980266e+00, 5.25837708e+02],
                             [-3.88404089e-04, -1.04585070e-05, 1.00000000e+00]])
