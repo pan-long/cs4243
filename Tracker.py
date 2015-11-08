@@ -6,7 +6,9 @@ import numpy as np
 
 
 class Tracker(object):
-    area_threshold = 14
+    area_threshold = 15
+    height_threshold = 5
+    width_threshold = 3
 
     mask_scaled = ((2, 234), (2094, 225), (1273, 40), (698, 40))
     mask = ((26, 949), (8398, 893), (5177, 139), (2881, 153))
@@ -41,7 +43,13 @@ class Tracker(object):
         img_thresholded = np.zeros((height, width, 3), np.uint8)
         filtered_contours = [];
         for contour in contours:
-            if cv2.contourArea(contour) >= self.area_threshold:
+            if np.abs(np.amin(contour, axis=0)[0][1] - upper_left[1]) <= 1. / 3 * (lower_left[1] - upper_left[1]) :
+                area_threshold = self.area_threshold / 2.5
+            else:
+                area_threshold = self.area_threshold
+            if cv2.contourArea(contour) >= area_threshold and \
+                    np.amax(contour, axis=0)[0][0] - np.amin(contour, axis=0)[0][0] >= self.width_threshold and \
+                    np.amax(contour, axis=0)[0][1] - np.amin(contour, axis=0)[0][1] >= self.height_threshold:
                 filtered_contours.append(contour)
         cv2.drawContours(img_thresholded, filtered_contours, -1, (255, 255, 255), -1)
 
