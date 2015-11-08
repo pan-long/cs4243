@@ -4,6 +4,7 @@ import numpy as np
 
 from Stitcher import Stitcher
 from Tracker import Tracker
+from Transformer import Transformer
 
 videos_path = 'videos/'
 videos = ['football_left.mp4', 'football_mid.mp4', 'football_right.mp4']
@@ -50,6 +51,7 @@ def main():
     background_ext.apply(background)
 
     tracker = Tracker(config_scale)
+    transformer = Transformer(config_scale)
 
     cap_left = cv2.VideoCapture(videos_path + videos[0])
     cap_mid = cv2.VideoCapture(videos_path + videos[1])
@@ -75,9 +77,12 @@ def main():
             warped_left_mid_right_cropped = crop_img(warped_left_mid_right)
             background = background_ext.apply(warped_left_mid_right_cropped)
             points = tracker.tracking(background)
-            for pt in points:
-                cv2.circle(warped_left_mid_right_cropped, (pt[1], pt[0]), 3, (0, 0, 255), -1)
-            cv2.imshow('Objects', warped_left_mid_right_cropped)
+            # for pt in points:
+            #     cv2.circle(warped_left_mid_right_cropped, (pt[1], pt[0]), 3, (0, 0, 255), -1)
+            # cv2.imshow('Objects', warped_left_mid_right_cropped)
+
+            background = transformer.transform(points)
+            cv2.imshow('Objects', background)
             cv2.waitKey(30)
 
     cv2.waitKey(0)
