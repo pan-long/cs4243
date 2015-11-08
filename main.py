@@ -8,7 +8,7 @@ from Tracker import Tracker
 videos_path = 'videos/'
 videos = ['football_left.mp4', 'football_mid.mp4', 'football_right.mp4']
 
-config_scale = False
+config_scale = True
 
 if config_scale:
     image_down_scale_factor = 4

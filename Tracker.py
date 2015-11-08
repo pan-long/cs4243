@@ -6,6 +6,8 @@ import numpy as np
 
 
 class Tracker(object):
+    area_threshold = 15
+
     mask_scaled = ((2, 234), (2094, 225), (1273, 40), (698, 40))
     mask = ((26, 949), (8398, 893), (5177, 139), (2881, 153))
 
@@ -35,17 +37,17 @@ class Tracker(object):
         # Remove noise and shadows
         _, img_thresholded = cv2.threshold(img, 200, 255, cv.CV_THRESH_BINARY)
 
-        kernel = np.ones((2, 2), np.uint8)
-        img_thresholded = cv2.erode(img_thresholded, kernel, iterations=1)
-        img_thresholded = cv2.dilate(img_thresholded, kernel, iterations=1)
-
-        img_thresholded = cv2.dilate(img_thresholded, kernel, iterations=1)
-        img_thresholded = cv2.erode(img_thresholded, kernel, iterations=1)
-
         contours, _ = cv2.findContours(img_thresholded, cv.CV_RETR_EXTERNAL, cv.CV_CHAIN_APPROX_SIMPLE)
+        img_thresholded = np.zeros((height, width, 3), np.uint8)
+        filtered_contours = [];
+        for contour in contours:
+            if cv2.contourArea(contour) >= self.area_threshold:
+                filtered_contours.append(contour)
+        cv2.drawContours(img_thresholded, filtered_contours, -1, (255, 255, 255), -1)
 
-        centers = map(partial(np.mean, axis=0), contours)
-        feet_points = map(partial(np.amax, axis=0), contours)
+        print(len(filtered_contours))
+        centers = map(partial(np.amax, axis=0), filtered_contours)
+        feet_points = map(partial(np.mean, axis=0), filtered_contours)
 
         tracking_points = np.array([(center[0][1], feet_point[0][0]) for center, feet_point in zip(centers, feet_points)], np.uint)
 
