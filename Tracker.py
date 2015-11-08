@@ -6,7 +6,7 @@ import numpy as np
 
 
 class Tracker(object):
-    area_threshold = 15
+    area_threshold = 14
 
     mask_scaled = ((2, 234), (2094, 225), (1273, 40), (698, 40))
     mask = ((26, 949), (8398, 893), (5177, 139), (2881, 153))
