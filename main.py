@@ -3,7 +3,7 @@ import cv2.cv as cv
 import numpy as np
 
 from Stitcher import Stitcher
-from Tracking import tracking
+from Tracker import Tracker
 
 videos_path = 'videos/'
 videos = ['football_left.mp4', 'football_mid.mp4', 'football_right.mp4']
@@ -49,6 +49,8 @@ def main():
     background_ext = cv2.BackgroundSubtractorMOG2()
     background_ext.apply(background)
 
+    tracker = Tracker(config_scale)
+
     cap_left = cv2.VideoCapture(videos_path + videos[0])
     cap_mid = cv2.VideoCapture(videos_path + videos[1])
     cap_right = cv2.VideoCapture(videos_path + videos[2])
@@ -72,7 +74,7 @@ def main():
             warped_left_mid_right = stitcher.stitch(warped_left_mid, frame_right, H_mid_right)
             warped_left_mid_right_cropped = crop_img(warped_left_mid_right)
             background = background_ext.apply(warped_left_mid_right_cropped)
-            background = tracking(background)
+            background = tracker.tracking(background)
             cv2.imshow('Objects', background)
             cv2.waitKey(30)
 
