@@ -4,6 +4,8 @@ import numpy as np
 
 from Stitcher import Stitcher
 from Tracking import tracking
+from matplotlib import pyplot as plt
+import lucas_canade_tracking
 
 videos_path = 'videos/'
 videos = ['football_left.mp4', 'football_mid.mp4', 'football_right.mp4']
@@ -41,11 +43,13 @@ def crop_img(img):
 
 
 def main():
+
     stitcher = Stitcher()
     if config_scale:
         background = cv2.imread('background_scaled.jpg')
     else:
         background = cv2.imread('background.jpg')
+
     background_ext = cv2.BackgroundSubtractorMOG2()
     background_ext.apply(background)
 
@@ -56,6 +60,17 @@ def main():
     frame_width = int(cap_mid.get(cv.CV_CAP_PROP_FRAME_WIDTH))
     frame_height = int(cap_mid.get(cv.CV_CAP_PROP_FRAME_HEIGHT))
     frame_count = int(cap_mid.get(cv.CV_CAP_PROP_FRAME_COUNT))
+
+
+
+    # SET UP tracker
+    LucasCanadeTracker = lucas_canade_tracking.LucasCanadeTracking()
+
+    # fourcc = cv2.cv.CV_FOURCC(*'X264')
+    fourcc = cv2.cv.CV_FOURCC('m', 'p', '4', 'v') # note the lower case
+    # video_out = cv2.VideoWriter('output.avi',fourcc, 20.0, (8400,1000))
+    video_out = cv2.VideoWriter('output_stiched.mp4',fourcc, 20.0, (2100,250), True)
+    print "video_out.isOpened():", video_out.isOpened()
 
     for fr in range(frame_count):
         status_left, frame_left = cap_left.read()
@@ -73,14 +88,47 @@ def main():
             warped_left_mid_right_cropped = crop_img(warped_left_mid_right)
             background = background_ext.apply(warped_left_mid_right_cropped)
             background = tracking(background)
-            cv2.imshow('Objects', background)
-            cv2.waitKey(30)
+            video_out.write(warped_left_mid_right_cropped)
+            print "tracked_frame:", fr
 
-    cv2.waitKey(0)
+            # plt.imshow(np.dstack((warped_left_mid_right_cropped[:,:,2], warped_left_mid_right_cropped[:,:,1], warped_left_mid_right_cropped[:,:,0])))
+            # plt.show()
+
+            # raise ValueError
+
+            # if(fr == 0):
+            #     # LucasCanadeTracker.setOldGray(background)
+            #     LucasCanadeTracker.setOldGray(cv2.cvtColor(warped_left_mid_right_cropped, cv2.COLOR_BGR2GRAY))
+            #     LucasCanadeTracker.setMask(warped_left_mid_right_cropped)
+            #     # p0 = [[[1158,123]],[[1128,95]], [[1138,71]], [[1218,65]],[[1204,60]], [[1219,51]], [[1200,47]]] # if use background for tracking
+            #     p0 = [[[1158,123]],[[1128,95]], [[1139,74]], [[1214,68]],[[1204,62]], [[1217,53]], [[1199,47]]] # if use converted warped_left_mid_right_cropped
+                
+            #     # for i in range(0, len(p0)):
+            #     #     print (p0[i][0][0],p0[i][0][1])
+            #     #     cv2.circle(warped_left_mid_right_cropped,(p0[i][0][0],p0[i][0][1]),2,(0,0,255),-1)
+            #     # # cv2.imshow("warped_left_mid_right_cropped_with_drawn_key_points", warped_left_mid_right_cropped)
+            #     # cv2.imwrite("warped_left_mid_right_cropped_with_drawn_key_points.jpg", warped_left_mid_right_cropped)
+            #     # # cv2.waitKey(0)
+            #     # raise ValueError("purpose stop")
+            #     LucasCanadeTracker.setp0(p0)
+            # else:
+            #     # tracked_frame = LucasCanadeTracker.trackingOneFrame(background,warped_left_mid_right_cropped)
+            #     tracked_frame = LucasCanadeTracker.trackingOneFrame(cv2.cvtColor(warped_left_mid_right_cropped, cv2.COLOR_BGR2GRAY),warped_left_mid_right_cropped)
+            #     print "tracked_frame:", fr
+            #     # cv2.imshow('tracked_frame', tracked_frame)
+            #     # cv2.waitKey(30)
+            #     # video_out.write(125 * np.ones((8400,1000,3)))
+            #     video_out.write(warped_left_mid_right_cropped)
+            #     # video_out.write(tracked_frame)
+            
+
+    # cv2.waitKey(0)
+    video_out.release()
     cv2.destroyAllWindows()
     cap_left.release()
     cap_mid.release()
     cap_right.release()
+    
 
 
 if __name__ == '__main__':
