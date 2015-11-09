@@ -5,6 +5,7 @@ import numpy as np
 from Stitcher import Stitcher
 from Tracker import Tracker
 from Transformer import Transformer
+from matplotlib import pyplot as plt
 
 videos_path = 'videos/'
 videos = ['football_left.mp4', 'football_mid.mp4', 'football_right.mp4']
@@ -80,8 +81,11 @@ def main():
             # for pt in points:
             #     cv2.circle(warped_left_mid_right_cropped, (pt[1], pt[0]), 3, (0, 0, 255), -1)
             # cv2.imshow('Objects', warped_left_mid_right_cropped)
+            # cv2.waitKey(0)
 
             background = transformer.transform(points)
+            # plt.imshow(warped_left_mid_right_cropped)
+            # plt.show()
             cv2.imshow('Objects', background)
             cv2.waitKey(30)
 
