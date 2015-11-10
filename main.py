@@ -90,19 +90,19 @@ def main():
             points = tracker.tracking(background)
             
             # for pt in points:
-            global prev
-            if len(prev) == 0:
-                prev = points[4]
-            pt = minPoint(points)
-            cv2.circle(warped_left_mid_right_cropped, (pt[1], pt[0]), 3, (0, 0, 255), -1)
-            cv2.imshow('Objects', warped_left_mid_right_cropped)
-            cv2.waitKey(30)
+            # global prev
+            # if len(prev) == 0:
+            #     prev = points[4]
+            # pt = minPoint(points)
+            # cv2.circle(warped_left_mid_right_cropped, (pt[1], pt[0]), 3, (0, 0, 255), -1)
+            # cv2.imshow('Objects', warped_left_mid_right_cropped)
+            # cv2.waitKey(30)
 
-            # background = transformer.transform(points)
+            background = transformer.transform(points)
             # plt.imshow(warped_left_mid_right_cropped)
             # plt.show()
-            # cv2.imshow('Objects', background)
-            # cv2.waitKey(30)
+            cv2.imshow('Objects', background)
+            cv2.waitKey(30)
 
     cv2.waitKey(0)
     cv2.destroyAllWindows()

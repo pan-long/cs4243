@@ -32,14 +32,16 @@ class Transformer():
 		# for i in range(len(points)):
 		# 	print points[i]
 
-		self.marker_map = {'A1': (1825, 1448), 'A2': (2463, 1283), \
-							'B1': (1852, 1198), 'B2': (1606, 987), 'B0': (687, 983), 'B4': (2488, 952)}
+		# before warp
+		self.marker_map = { 'C0': (71, 1153), \
+							'R0': (80, 761), 'R1': (80, 1033), 'R2': (95, 1127), 'R3': (54, 1156), 'R4': (65, 1185), 'R5': (61, 1204), 'R6': (56, 1217), 'R7': (69, 1213), 'R8': (67, 1253), 'R9': (75, 1281), 'R10': (92, 1347), \
+							'B0': (71, 1409), 'B1': (72, 2016), 'B2': (47, 1051), 'B3': (58, 1117), 'B4': (74, 1139), 'B5': (123, 1156), 'B6': (61, 1177), 'B7': (48, 1198), 'R8': (102, 1353)}
 
 	def minPoint(self, point, points):
 		min = maxHeight ** 2 + maxWidth ** 2
-
+		minPt = (0, 0)
 		for i in range(len(points)):
-			dist = (points[i][0] - point[0]) ** 2 + (points[i][1] - point[1]) ** 2
+			dist = (int(points[i][0]) - point[0]) ** 2 + (int(points[i][1]) - point[1]) ** 2
 			if dist < min:
 				min = dist
 				minPt = points[i]
@@ -74,20 +76,16 @@ class Transformer():
 
 		M = cv2.getPerspectiveTransform(self.mask_points, dst)
 
-		warped = []
-		for i in range(len(points)):
-			warped.append(self.warpPerspective(M, points[i]))
-			# print points[i], warped[i]
-
 		# manually mark players' location in the first frame
 		if len(self.marker_map) == 0:
-			self.initMarker(warped)
+			self.initMarker(points)
 		else:
-			self.updateMarker(warped)
+			self.updateMarker(points)
 
 		for m, p in self.marker_map.iteritems():
+			p = self.warpPerspective(M, p)
 			font = cv2.FONT_HERSHEY_SIMPLEX
-			if m[0] == "A":
+			if m[0] == "B":
 				cv2.putText(field, m, p, font, 1, (255, 0, 0), 2, cv2.CV_AA)
 			else:
 				cv2.putText(field, m, p, font, 1, (0, 0, 255), 2, cv2.CV_AA)
