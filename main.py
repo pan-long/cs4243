@@ -11,7 +11,6 @@ videos_path = 'videos/'
 videos = ['football_left.mp4', 'football_mid.mp4', 'football_right.mp4']
 
 config_scale = True
-prev = []
 
 if config_scale:
     image_down_scale_factor = 4
@@ -61,7 +60,6 @@ def main():
     background_ext = cv2.BackgroundSubtractorMOG2()
     background_ext.apply(background)
 
-    tracker = Tracker(config_scale)
     transformer = Transformer(config_scale)
 
     cap_left = cv2.VideoCapture(videos_path + videos[0])
@@ -72,7 +70,11 @@ def main():
     frame_height = int(cap_mid.get(cv.CV_CAP_PROP_FRAME_HEIGHT))
     frame_count = int(cap_mid.get(cv.CV_CAP_PROP_FRAME_COUNT))
 
+    point = [123, 1156]
+    tracker = Tracker(config_scale, point)
+
     for fr in range(frame_count):
+        print(fr)
         status_left, frame_left = cap_left.read()
         status_mid, frame_mid = cap_mid.read()
         status_right, frame_right = cap_right.read()
@@ -87,16 +89,17 @@ def main():
             warped_left_mid_right = stitcher.stitch(warped_left_mid, frame_right, H_mid_right)
             warped_left_mid_right_cropped = crop_img(warped_left_mid_right)
             background = background_ext.apply(warped_left_mid_right_cropped)
-            points = tracker.tracking(background)
+
+            point = tracker.tracking(background)
             
             # for pt in points:
             # global prev
             # if len(prev) == 0:
             #     prev = points[4]
             # pt = minPoint(points)
-            # cv2.circle(warped_left_mid_right_cropped, (pt[1], pt[0]), 3, (0, 0, 255), -1)
-            # cv2.imshow('Objects', warped_left_mid_right_cropped)
-            # cv2.waitKey(30)
+            cv2.circle(warped_left_mid_right_cropped, (point[1], point[0]), 3, (0, 0, 255), -1)
+            cv2.imshow('Objects', warped_left_mid_right_cropped)
+            cv2.waitKey(1)
 
             # background = transformer.transform(points)
             # plt.imshow(warped_left_mid_right_cropped)
