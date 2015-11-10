@@ -57,8 +57,6 @@ def main():
         background = cv2.imread('background_scaled.jpg')
     else:
         background = cv2.imread('background.jpg')
-    background_ext = cv2.BackgroundSubtractorMOG2()
-    background_ext.apply(background)
 
     transformer = Transformer(config_scale)
 
@@ -70,10 +68,13 @@ def main():
     frame_height = int(cap_mid.get(cv.CV_CAP_PROP_FRAME_HEIGHT))
     frame_count = int(cap_mid.get(cv.CV_CAP_PROP_FRAME_COUNT))
 
-    point = [123, 1156]
-    tracker = Tracker(config_scale, point)
+    point = [70, 907]
+    tracker = Tracker(background, config_scale, point, 'R')
 
-    for fr in range(frame_count):
+    cap_left.set(cv.CV_CAP_PROP_POS_FRAMES, 1300)
+    cap_mid.set(cv.CV_CAP_PROP_POS_FRAMES, 1300)
+    cap_right.set(cv.CV_CAP_PROP_POS_FRAMES, 1300)
+    for fr in range(1300, frame_count):
         print(fr)
         status_left, frame_left = cap_left.read()
         status_mid, frame_mid = cap_mid.read()
@@ -88,9 +89,11 @@ def main():
             warped_left_mid = stitcher.stitch(frame_mid, frame_left, H_left_mid)
             warped_left_mid_right = stitcher.stitch(warped_left_mid, frame_right, H_mid_right)
             warped_left_mid_right_cropped = crop_img(warped_left_mid_right)
-            background = background_ext.apply(warped_left_mid_right_cropped)
 
-            point = tracker.tracking(background)
+            # plt.imshow(warped_left_mid_right_cropped)
+            # plt.show()
+            # cv2.waitKey(0)
+            point = tracker.tracking(warped_left_mid_right_cropped)
             
             # for pt in points:
             # global prev
@@ -98,6 +101,8 @@ def main():
             #     prev = points[4]
             # pt = minPoint(points)
             cv2.circle(warped_left_mid_right_cropped, (point[1], point[0]), 3, (0, 0, 255), -1)
+            height, width = warped_left_mid_right_cropped.shape[:2]
+            warped_left_mid_right_cropped = cv2.resize(warped_left_mid_right_cropped, (width / 2, height / 2))
             cv2.imshow('Objects', warped_left_mid_right_cropped)
             cv2.waitKey(1)
 
