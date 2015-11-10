@@ -9,13 +9,13 @@ class Tracker(object):
     area_threshold = 10
     height_threshold = 5
     width_threshold = 3
+    color_threshold = 100
+    distance_threshold = 3
 
-    box_delta_y_up_small = 20
-    box_delta_y_up_large = 30
-    box_delta_y_up = box_delta_y_up_small
-    box_delta_y_down = 5
-    box_delta_x_left = 10
-    box_delta_x_right = 10
+    box_delta_y_up = 10
+    box_delta_y_down = 3
+    box_delta_x_left = 5
+    box_delta_x_right = 5
 
     mask_scaled = ((2, 234), (2094, 225), (1273, 40), (698, 40))
     mask = ((26, 949), (8398, 893), (5177, 139), (2881, 153))
@@ -23,6 +23,7 @@ class Tracker(object):
     def __init__(self, background, is_scaled, init_point, color):
         self.init_point = init_point
         self.current_point = init_point
+        self.center = [self.box_delta_y_up, self.box_delta_x_left]
 
         self.velocity = [0, 0]
         if color[0].upper() == 'R':
@@ -67,6 +68,7 @@ class Tracker(object):
 
         # Remove noise and shadows
         _, img_thresholded = cv2.threshold(sub_img, 200, 255, cv.CV_THRESH_BINARY)
+        cv2.imshow('sub', sub_img)
 
         contours, _ = cv2.findContours(img_thresholded, cv.CV_RETR_EXTERNAL, cv.CV_CHAIN_APPROX_SIMPLE)
         # img_thresholded = np.zeros((height, width, 3), np.uint8)
@@ -82,6 +84,9 @@ class Tracker(object):
                                     np.amax(contour, axis=0)[0][1] - np.amin(contour, axis=0)[0][
                                 1] >= self.height_threshold:
                 filtered_contours.append(contour)
+                # elif cv2.pointPolygonTest(contour, (self.box_delta_y_up + self.velocity[0] - self.current_point[0] + self.center[0],
+                #                                     self.box_delta_x_left + self.velocity[1] - self.current_point[1] + self.center[1]), False):
+                #     filtered_contours.append(contour)
         # cv2.drawContours(img_thresholded, filtered_contours, -1, (255, 255, 255), -1)
 
         # print(len(filtered_contours))
@@ -89,42 +94,70 @@ class Tracker(object):
         feet = np.array(map(partial(np.amax, axis=0), filtered_contours), np.int)
         center = np.array(map(partial(np.mean, axis=0), filtered_contours), np.int)
 
+        # print(center)
+        for c in center:
+            if np.hypot(c[0][0] - self.center[0], c[0][1] - self.center[1]) < self.distance_threshold ** 2:
+                break
+        else:
+            center = np.array(map(partial(np.mean, axis=0), contours), np.int)
+            for c, contour in zip(center, contours):
+                # print(np.hypot(c[0][0] - self.center[0], c[0][1] - self.center[1]))
+                if np.hypot(c[0][0] - self.center[0], c[0][1] - self.center[1]) < self.distance_threshold ** 2:
+                    filtered_contours.append(contour)
+
+            feet = np.array(map(partial(np.amax, axis=0), filtered_contours), np.int)
+            center = np.array(map(partial(np.mean, axis=0), filtered_contours), np.int)
+
         tracking_points = []
         for f, c in zip(feet, center):
             if c[0][1] >= self.box_delta_x_left + self.box_delta_x_right:
                 c[0][1] = self.box_delta_x_left + self.box_delta_x_right - 1
             if f[0][1] >= self.box_delta_y_up + self.box_delta_y_down:
                 f[0][1] = self.box_delta_y_up + self.box_delta_y_down - 1
+            i = 0
+            for j in range(self.box_delta_y_up):
+                if c[0][0] - i >= 0 and \
+                                np.abs(int(sub_img_orig[c[0][0] - i, c[0][1], 0]) \
+                                               - sub_img_orig[c[0][0] - i, c[0][1], 2]) > self.color_threshold:
+                    i = j
+                    break
+
             if self.color == 'R':
-                expected_color = sub_img_orig[c[0][0], c[0][1], 2]
-                compared_color = sub_img_orig[c[0][0], c[0][1], 0]
+                expected_color = sub_img_orig[c[0][0] - i, c[0][1], 2]
+                compared_color = sub_img_orig[c[0][0] - i, c[0][1], 0]
             else:
-                expected_color = sub_img_orig[c[0][0], c[0][1], 0]
-                compared_color = sub_img_orig[c[0][0], c[0][1], 2]
+                expected_color = sub_img_orig[c[0][0] - i, c[0][1], 0]
+                compared_color = sub_img_orig[c[0][0] - i, c[0][1], 2]
             if expected_color < compared_color and len(center) == 1:  # we are blocked by someone else
                 tracking_points.append(
-                    (self.box_delta_y_up + self.velocity[0], self.box_delta_x_left + self.velocity[1]))
+                    [self.box_delta_y_up + self.velocity[0], self.box_delta_x_left + self.velocity[1]])
                 # self.box_delta_y_up = self.box_delta_y_up_large
             elif expected_color > compared_color:
-                tracking_points.append((f[0][1], c[0][0]))
+                tracking_points.append([f[0][1], c[0][0]])
                 # self.box_delta_y_up = self.box_delta_y_up_small
         if len(tracking_points) == 0:
             # tracking_points = np.array(
             #     [(c[0][1], c[0][0]) for c in center], np.int)
-            tracking_points.append((self.box_delta_y_up + self.velocity[0], self.box_delta_x_left + self.velocity[1]))
+            tracking_points.append([self.box_delta_y_up + self.velocity[0], self.box_delta_x_left + self.velocity[1]])
         else:
-            print(tracking_points)
             tracking_points = np.array(tracking_points, np.int)
 
         # tracking_points = np.array(
         #     [(f[0][1], c[0][0]) for f, c in zip(feet, center)], np.int)
 
+        print(tracking_points)
         if len(tracking_points) >= 1:
             point = self.__minPoint(tracking_points)
             point[0] = self.current_point[0] + point[0] - self.box_delta_y_up
             point[1] = self.current_point[1] + point[1] - self.box_delta_x_left
-            self.velocity = point - self.current_point
+            self.velocity[0] = point[0] - self.current_point[0]
+            self.velocity[1] = point[1] - self.current_point[1]
             self.current_point = point
+            for con, cen in zip(contours, center):
+                if cv2.pointPolygonTest(con, tuple(point), False):
+                    self.center[0] = cen[0][0]
+                    self.center[1] = cen[0][1]
+                    break
 
         return self.current_point
 

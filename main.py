@@ -68,13 +68,13 @@ def main():
     frame_height = int(cap_mid.get(cv.CV_CAP_PROP_FRAME_HEIGHT))
     frame_count = int(cap_mid.get(cv.CV_CAP_PROP_FRAME_COUNT))
 
-    point = [70, 907]
+    point = [58, 1117]
     tracker = Tracker(background, config_scale, point, 'R')
 
-    cap_left.set(cv.CV_CAP_PROP_POS_FRAMES, 1300)
-    cap_mid.set(cv.CV_CAP_PROP_POS_FRAMES, 1300)
-    cap_right.set(cv.CV_CAP_PROP_POS_FRAMES, 1300)
-    for fr in range(1300, frame_count):
+    # cap_left.set(cv.CV_CAP_PROP_POS_FRAMES, 1400)
+    # cap_mid.set(cv.CV_CAP_PROP_POS_FRAMES, 1400)
+    # cap_right.set(cv.CV_CAP_PROP_POS_FRAMES, 1400)
+    for fr in range(frame_count):
         print(fr)
         status_left, frame_left = cap_left.read()
         status_mid, frame_mid = cap_mid.read()
