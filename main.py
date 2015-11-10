@@ -11,6 +11,7 @@ videos_path = 'videos/'
 videos = ['football_left.mp4', 'football_mid.mp4', 'football_right.mp4']
 
 config_scale = True
+prev = []
 
 if config_scale:
     image_down_scale_factor = 4
@@ -41,6 +42,15 @@ def crop_img(img):
     # TODO: Detect the black area and crop smartly.
     return img[crop_image_rect['min_y']:crop_image_rect['max_y'], crop_image_rect['min_x']: crop_image_rect['max_x']]
 
+def minPoint(points):
+    min = 3000 ** 2 * 2
+    for i in range(len(points)):
+        dist = (points[i][0] - prev[0]) ** 2 + (points[i][1] - prev[1]) ** 2
+        if dist < min:
+            min = dist
+            minPt = points[i]
+
+    return minPt
 
 def main():
     stitcher = Stitcher()
@@ -78,16 +88,21 @@ def main():
             warped_left_mid_right_cropped = crop_img(warped_left_mid_right)
             background = background_ext.apply(warped_left_mid_right_cropped)
             points = tracker.tracking(background)
+            
             # for pt in points:
-            #     cv2.circle(warped_left_mid_right_cropped, (pt[1], pt[0]), 3, (0, 0, 255), -1)
-            # cv2.imshow('Objects', warped_left_mid_right_cropped)
-            # cv2.waitKey(0)
+            global prev
+            if len(prev) == 0:
+                prev = points[4]
+            pt = minPoint(points)
+            cv2.circle(warped_left_mid_right_cropped, (pt[1], pt[0]), 3, (0, 0, 255), -1)
+            cv2.imshow('Objects', warped_left_mid_right_cropped)
+            cv2.waitKey(30)
 
-            background = transformer.transform(points)
+            # background = transformer.transform(points)
             # plt.imshow(warped_left_mid_right_cropped)
             # plt.show()
-            cv2.imshow('Objects', background)
-            cv2.waitKey(30)
+            # cv2.imshow('Objects', background)
+            # cv2.waitKey(30)
 
     cv2.waitKey(0)
     cv2.destroyAllWindows()
