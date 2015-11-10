@@ -98,11 +98,11 @@ def main():
             # cv2.imshow('Objects', warped_left_mid_right_cropped)
             # cv2.waitKey(30)
 
-            background = transformer.transform(points)
+            # background = transformer.transform(points)
             # plt.imshow(warped_left_mid_right_cropped)
             # plt.show()
-            cv2.imshow('Objects', background)
-            cv2.waitKey(30)
+            # cv2.imshow('Objects', background)
+            # cv2.waitKey(30)
 
     cv2.waitKey(0)
     cv2.destroyAllWindows()
