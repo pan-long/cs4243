@@ -9,7 +9,7 @@ class Tracker(object):
     area_threshold = 10
     height_threshold = 5
     width_threshold = 3
-    color_threshold = 100
+    color_threshold = 40
     distance_threshold = 3
 
     box_delta_y_up = 10
@@ -114,13 +114,18 @@ class Tracker(object):
                 c[0][1] = self.box_delta_x_left + self.box_delta_x_right - 1
             if f[0][1] >= self.box_delta_y_up + self.box_delta_y_down:
                 f[0][1] = self.box_delta_y_up + self.box_delta_y_down - 1
+
             i = 0
             for j in range(self.box_delta_y_up):
-                if c[0][0] - i >= 0 and \
-                                np.abs(int(sub_img_orig[c[0][0] - i, c[0][1], 0]) \
-                                               - sub_img_orig[c[0][0] - i, c[0][1], 2]) > self.color_threshold:
-                    i = j
-                    break
+                if c[0][0] - j >= 0:
+                    pixel = sub_img_orig[c[0][0] - j, c[0][1]]
+                    pixel_hsv =  cv2.cvtColor(np.array([[pixel]]), cv2.COLOR_BGR2HSV)
+
+                    if pixel_hsv[0][0][0] < 20 or \
+                            (pixel_hsv[0][0][0] > 110 and pixel_hsv[0][0][0] < 130):
+                        i = j
+                        break
+            # print i
 
             if self.color == 'R':
                 expected_color = sub_img_orig[c[0][0] - i, c[0][1], 2]
@@ -128,7 +133,9 @@ class Tracker(object):
             else:
                 expected_color = sub_img_orig[c[0][0] - i, c[0][1], 0]
                 compared_color = sub_img_orig[c[0][0] - i, c[0][1], 2]
+
             if expected_color < compared_color and len(center) == 1:  # we are blocked by someone else
+                print 'blocked', expected_color, compared_color
                 tracking_points.append(
                     [self.box_delta_y_up + self.velocity[0], self.box_delta_x_left + self.velocity[1]])
                 # self.box_delta_y_up = self.box_delta_y_up_large
@@ -145,7 +152,7 @@ class Tracker(object):
         # tracking_points = np.array(
         #     [(f[0][1], c[0][0]) for f, c in zip(feet, center)], np.int)
 
-        print(tracking_points)
+        # print(tracking_points)
         if len(tracking_points) >= 1:
             point = self.__minPoint(tracking_points)
             point[0] = self.current_point[0] + point[0] - self.box_delta_y_up
