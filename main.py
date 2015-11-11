@@ -6,6 +6,7 @@ from Stitcher import Stitcher
 from Tracker import Tracker
 from Transformer import Transformer
 from matplotlib import pyplot as plt
+import meanShift
 
 videos_path = 'videos/'
 videos = ['football_left.mp4', 'football_mid.mp4', 'football_right.mp4']
@@ -73,6 +74,7 @@ def main():
     point = [123, 1156]
     tracker = Tracker(config_scale, point)
 
+    mean_shift_tracker = meanShift.meanShiftTracker()
     for fr in range(frame_count):
         print(fr)
         status_left, frame_left = cap_left.read()
@@ -84,22 +86,33 @@ def main():
         frame_mid = cv2.resize(frame_mid, scaled_size)
         frame_right = cv2.resize(frame_right, scaled_size)
 
+
         if status_left and status_mid and status_right:
             warped_left_mid = stitcher.stitch(frame_mid, frame_left, H_left_mid)
             warped_left_mid_right = stitcher.stitch(warped_left_mid, frame_right, H_mid_right)
             warped_left_mid_right_cropped = crop_img(warped_left_mid_right)
             background = background_ext.apply(warped_left_mid_right_cropped)
 
-            point = tracker.tracking(background)
+            # plt.imshow(warped_left_mid_right_cropped)
+            # plt.show()
+            # break
+
+            if fr == 0:
+                mean_shift_tracker.initFromFirstFrame(warped_left_mid_right_cropped)
+                # break
+            else:
+                mean_shift_tracker.trackOneFrame(warped_left_mid_right_cropped)
+
+            # point = tracker.tracking(background)
             
             # for pt in points:
             # global prev
             # if len(prev) == 0:
             #     prev = points[4]
             # pt = minPoint(points)
-            cv2.circle(warped_left_mid_right_cropped, (point[1], point[0]), 3, (0, 0, 255), -1)
-            cv2.imshow('Objects', warped_left_mid_right_cropped)
-            cv2.waitKey(1)
+            # cv2.circle(warped_left_mid_right_cropped, (point[1], point[0]), 3, (0, 0, 255), -1)
+            # cv2.imshow('Objects', warped_left_mid_right_cropped)
+            # cv2.waitKey(1)
 
             # background = transformer.transform(points)
             # plt.imshow(warped_left_mid_right_cropped)
