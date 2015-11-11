@@ -140,6 +140,7 @@ class Tracker(object):
                     [self.box_delta_y_up + self.velocity[0], self.box_delta_x_left + self.velocity[1]])
                 # self.box_delta_y_up = self.box_delta_y_up_large
             elif expected_color > compared_color:
+                print("front")
                 tracking_points.append([f[0][1], c[0][0]])
                 # self.box_delta_y_up = self.box_delta_y_up_small
         if len(tracking_points) == 0:
