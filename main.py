@@ -62,8 +62,9 @@ def main():
 
     init_points = {'C0': (71, 1153), \
 					'R0': (80, 761), 'R1': (80, 1033), 'R2': (95, 1127), 'R3': (54, 1156), 'R4': (65, 1185), 'R5': (61, 1204), 'R6': (56, 1217), 'R7': (69, 1213), 'R8': (67, 1253), 'R9': (75, 1281), 'R10': (92, 1347), \
-					'B0': (71, 1409), 'B1': (72, 1016), 'B2': (47, 1051), 'B3': (58, 1117), 'B4': (74, 1139), 'B5': (123, 1156), 'B6': (61, 1177), 'B7': (48, 1198), 'R8': (102, 1353)}
+					'B0': (71, 1409), 'B1': (72, 1016), 'B2': (47, 1051), 'B3': (58, 1117), 'B4': (74, 1139), 'B5': (123, 1156), 'B6': (61, 1177), 'B7': (48, 1198), 'R8': (102, 1353), 'R9': (65, 1254)}
 
+    points = init_points.values()
     tracker = Tracker(background, config_scale, init_points.values())
 
     # cap_left.set(cv.CV_CAP_PROP_POS_FRAMES, 1400)
@@ -88,19 +89,20 @@ def main():
             warped_left_mid_right = stitcher.stitch(warped_left_mid, frame_right, H_mid_right)
             warped_left_mid_right_cropped = crop_img(warped_left_mid_right)
 
-            # plt.imshow(warped_left_mid_right_cropped)
-            # plt.show()
-            # cv2.waitKey(0)
-            points = tracker.tracking(warped_left_mid_right_cropped)
 
             for i in range(len(points)):
                 cv2.circle(warped_left_mid_right_cropped, (points[i][1], points[i][0]), 3, (0, 0, 255), -1)
+
+            # plt.imshow(warped_left_mid_right_cropped)
+            # plt.show()
+            # cv2.waitKey(0)
 
             height, width = warped_left_mid_right_cropped.shape[:2]
             warped_left_mid_right_cropped = cv2.resize(warped_left_mid_right_cropped, (width / 2, height / 2))
             cv2.imshow('Objects', warped_left_mid_right_cropped)
             cv2.waitKey(1)
 
+            points = tracker.tracking(warped_left_mid_right_cropped)
             # background = transformer.transform(points)
             # plt.imshow(warped_left_mid_right_cropped)
             # plt.show()
