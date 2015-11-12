@@ -41,15 +41,6 @@ def crop_img(img):
     # TODO: Detect the black area and crop smartly.
     return img[crop_image_rect['min_y']:crop_image_rect['max_y'], crop_image_rect['min_x']: crop_image_rect['max_x']]
 
-def minPoint(points):
-    min = 3000 ** 2 * 2
-    for i in range(len(points)):
-        dist = (points[i][0] - prev[0]) ** 2 + (points[i][1] - prev[1]) ** 2
-        if dist < min:
-            min = dist
-            minPt = points[i]
-
-    return minPt
 
 def main():
     stitcher = Stitcher()
@@ -95,11 +86,6 @@ def main():
             # cv2.waitKey(0)
             point = tracker.tracking(warped_left_mid_right_cropped)
             
-            # for pt in points:
-            # global prev
-            # if len(prev) == 0:
-            #     prev = points[4]
-            # pt = minPoint(points)
             cv2.circle(warped_left_mid_right_cropped, (point[1], point[0]), 3, (0, 0, 255), -1)
             height, width = warped_left_mid_right_cropped.shape[:2]
             warped_left_mid_right_cropped = cv2.resize(warped_left_mid_right_cropped, (width / 2, height / 2))
