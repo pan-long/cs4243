@@ -24,11 +24,12 @@ class BackgroundExt(object):
         :param image: The image added
         :return: The background after adding this new image.
         """
-        image = np.asarray(image)
+        img = np.array(image, np.float)
         if self.background_img is None:
-            self.background_img = image
+            self.background_img = img
         else:
-            self.background_img = self.number_of_images / (self.number_of_images + 1.) * self.background_img + \
-                                  1. / (self.number_of_images + 1.) * image
+            self.background_img = self.background_img * self.number_of_images / (self.number_of_images + 1.)
+            img = img / (self.number_of_images + 1.)
+            self.background_img = self.background_img + img
         self.number_of_images += 1
         return cv2.convertScaleAbs(self.background_img)
