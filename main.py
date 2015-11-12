@@ -75,8 +75,11 @@ def main():
     tracker = Tracker(config_scale, point)
 
     mean_shift_tracker = meanShift.meanShiftTracker()
-    for fr in range(frame_count):
+    fr = 0
+    # for fr in range(frame_count):
+    while(fr < frame_count):
         print(fr)
+        
         status_left, frame_left = cap_left.read()
         status_mid, frame_mid = cap_mid.read()
         status_right, frame_right = cap_right.read()
@@ -93,15 +96,23 @@ def main():
             warped_left_mid_right_cropped = crop_img(warped_left_mid_right)
             background = background_ext.apply(warped_left_mid_right_cropped)
 
-            # plt.imshow(warped_left_mid_right_cropped)
-            # plt.show()
-            # break
+            # if(fr == 1200):
+                # plt.imshow(warped_left_mid_right_cropped)
+                # plt.show()
+                # break
 
             if fr == 0:
                 mean_shift_tracker.initFromFirstFrame(warped_left_mid_right_cropped)
-                # break
+                # set fr to 800 after initialize to speed up test
+                fr = 1200
+                # mean_shift_tracker.setTrack_window((984,76,5,11)) # set frame number for fr 800
+                mean_shift_tracker.setTrack_window((940,81,5,11)) # set frame number for fr 1400
+                cap_left.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
+                cap_mid.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
+                cap_right.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
             else:
                 mean_shift_tracker.trackOneFrame(warped_left_mid_right_cropped)
+                fr += 1
 
             # point = tracker.tracking(background)
             
