@@ -25,20 +25,20 @@ class Tracker(object):
 
     def tracking(self, img):
         # make close points to use camshift tracker
-        for i in range(len(self.points)):
-            point = self.points[i]
-
-            for j in range(i+1, len(self.points)):
-                tmp = self.points[j]
-
-                if (i not in self.camshift_tracker) and self.__distance(point, tmp) < self.dist_threshold:
-                    camshift_tracker1 = camShiftTracker(point[0], point[1])
-                    camshift_tracker1.initFromFirstFrame(img)
-                    self.camshift_tracker[i] = camshift_tracker1
-
-                    camshift_tracker2 = camShiftTracker(tmp[0], tmp[1])
-                    camshift_tracker2.initFromFirstFrame(img)
-                    self.camshift_tracker[j] = camshift_tracker2
+        # for i in range(len(self.points)):
+        #     point = self.points[i]
+        #
+        #     for j in range(i+1, len(self.points)):
+        #         tmp = self.points[j]
+        #
+        #         if (i not in self.camshift_tracker) and self.__distance(point, tmp) < self.dist_threshold:
+        #             camshift_tracker1 = camShiftTracker(point[0], point[1])
+        #             camshift_tracker1.initFromFirstFrame(img)
+        #             self.camshift_tracker[i] = camshift_tracker1
+        #
+        #             camshift_tracker2 = camShiftTracker(tmp[0], tmp[1])
+        #             camshift_tracker2.initFromFirstFrame(img)
+        #             self.camshift_tracker[j] = camshift_tracker2
 
 
         # tracking points
