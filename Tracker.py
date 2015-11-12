@@ -13,16 +13,10 @@ class Tracker(object):
     box_delta_x_left = 5
     box_delta_x_right = 5
 
-    def __init__(self, background, is_scaled, init_point, color):
+    def __init__(self, background, is_scaled, init_point):
         self.init_point = init_point
         self.current_point = init_point
-
         self.velocity = [0, 0]
-        if color[0].upper() == 'R':
-            self.color = 'R'
-        else:
-            self.color = 'B'
-
         self.background = background
 
     def tracking(self, img):

@@ -60,7 +60,7 @@ def main():
     frame_count = int(cap_mid.get(cv.CV_CAP_PROP_FRAME_COUNT))
 
     point = [58, 1117]
-    tracker = Tracker(background, config_scale, point, 'R')
+    tracker = Tracker(background, config_scale, point)
 
     # cap_left.set(cv.CV_CAP_PROP_POS_FRAMES, 1400)
     # cap_mid.set(cv.CV_CAP_PROP_POS_FRAMES, 1400)
@@ -85,7 +85,7 @@ def main():
             # plt.show()
             # cv2.waitKey(0)
             point = tracker.tracking(warped_left_mid_right_cropped)
-            
+
             cv2.circle(warped_left_mid_right_cropped, (point[1], point[0]), 3, (0, 0, 255), -1)
             height, width = warped_left_mid_right_cropped.shape[:2]
             warped_left_mid_right_cropped = cv2.resize(warped_left_mid_right_cropped, (width / 2, height / 2))
