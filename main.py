@@ -31,6 +31,14 @@ else:
     crop_image_rect = {'min_x': 800, 'max_x': 9200, 'min_y': 400, 'max_y': 1400}
 
 
+mouse_x = 0
+mouse_y = 0
+
+def mousePosition(event, x, y, flags, param):
+    global mouse_x, mouse_y
+    mouse_x = x
+    mouse_y = y
+
 def crop_img(img):
     """
     Crop the black area after warping images together.
@@ -48,6 +56,8 @@ def main():
     else:
         background = cv2.imread('images/background.jpg')
 
+    background_ext = cv2.BackgroundSubtractorMOG2()
+    background_ext.apply(background)
     transformer = Transformer(config_scale)
 
     cap_left = cv2.VideoCapture(videos_path + videos[0])
@@ -71,7 +81,12 @@ def main():
     # cap_left.set(cv.CV_CAP_PROP_POS_FRAMES, 1400)
     # cap_mid.set(cv.CV_CAP_PROP_POS_FRAMES, 1400)
     # cap_right.set(cv.CV_CAP_PROP_POS_FRAMES, 1400)
-    for fr in range(frame_count):
+    cv2.namedWindow('Objects')
+    cv2.setMouseCallback('Objects', mousePosition)
+    tracking_started = False
+
+    track = []
+    for fr in range(100):
         print(fr)
         status_left, frame_left = cap_left.read()
         status_mid, frame_mid = cap_mid.read()
@@ -94,13 +109,19 @@ def main():
             # plt.show()
             # cv2.waitKey(0)
 
-            points = tracker.tracking(warped_left_mid_right_cropped)
-            for i in range(len(points)):
-                cv2.circle(warped_left_mid_right_cropped, (points[i][1], points[i][0]), 3, (0, 0, 255), -1)
+            # points = tracker.tracking(warped_left_mid_right_cropped)
+            # for i in range(len(points)):
+            #     cv2.circle(warped_left_mid_right_cropped, (points[i][1], points[i][0]), 3, (0, 0, 255), -1)
 
+            # warped_left_mid_right_cropped = background_ext.apply(warped_left_mid_right_cropped)
             height, width = warped_left_mid_right_cropped.shape[:2]
-            warped_left_mid_right_cropped = cv2.resize(warped_left_mid_right_cropped, (width / 2, height / 2))
+            # warped_left_mid_right_cropped = cv2.resize(warped_left_mid_right_cropped, (width / 2, height / 2))
             cv2.imshow('Objects', warped_left_mid_right_cropped)
+            if not tracking_started:
+                cv2.waitKey(0)
+                tracking_started = True
+
+            track.append((mouse_x, mouse_y))
             cv2.waitKey(1)
 
             # background = transformer.transform(points)
@@ -109,6 +130,9 @@ def main():
             # cv2.imshow('Objects', background)
             # cv2.waitKey(30)
 
+    file = open('tracks/R1.txt', 'w')
+    for pos in track:
+        file.write('{0} {1}\n'.format(pos[0], pos[1]))
     cv2.waitKey(0)
     cv2.destroyAllWindows()
     cap_left.release()

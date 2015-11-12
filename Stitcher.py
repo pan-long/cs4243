@@ -215,9 +215,10 @@ class Stitcher(object):
         img_h = int(math.ceil(max_y))
 
         # Warp the new image given the homography from the old images.
-        base_img_warp = cv2.warpPerspective(base_img, move_h, (img_w, img_h))
+        base_img_warp = cv2.warpPerspective(base_img, move_h, (img_w, img_h), borderMode=cv2.BORDER_TRANSPARENT)
 
-        img_to_stitch_warp = cv2.warpPerspective(img_to_stitch, mod_inv_h, (img_w, img_h))
+        img_to_stitch_warp = cv2.warpPerspective(img_to_stitch, mod_inv_h, (img_w, img_h),
+                                                 borderMode=cv2.BORDER_TRANSPARENT)
 
         # Put the base image on an enlarged palette.
         enlarged_base_img = np.zeros((img_h, img_w, 3), np.uint8)
