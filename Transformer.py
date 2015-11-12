@@ -4,7 +4,7 @@ import cv2.cv as cv
 from functools import partial
 from matplotlib import pyplot as plt
 
-football_field = cv2.imread('football_field.png')
+football_field = cv2.imread('images/football_field.png')
 maxHeight, maxWidth = football_field.shape[:2]
 mask = np.float32([[2881, 153], [5177, 139], [8398, 893], [26, 949]])
 mask_scaled = np.float32([[698, 40], [1273, 40], [2094, 225], [2, 234]])

@@ -54,9 +54,9 @@ def minPoint(points):
 def main():
     stitcher = Stitcher()
     if config_scale:
-        background = cv2.imread('background_scaled.jpg')
+        background = cv2.imread('images/background_scaled.jpg')
     else:
-        background = cv2.imread('background.jpg')
+        background = cv2.imread('images/background.jpg')
 
     transformer = Transformer(config_scale)
 
