@@ -42,7 +42,6 @@ class Tracker(object):
 
         # Remove noise and shadows
         _, img_thresholded = cv2.threshold(sub_img, 200, 255, cv.CV_THRESH_BINARY)
-        cv2.imshow('sub', sub_img)
 
         contours, _ = cv2.findContours(img_thresholded, cv.CV_RETR_EXTERNAL, cv.CV_CHAIN_APPROX_SIMPLE)
         filtered_contours = [];
@@ -72,7 +71,7 @@ class Tracker(object):
             self.velocities[idx][0] = point[0] - current_point[0]
             self.velocities[idx][1] = point[1] - current_point[1]
 
-        return current_point
+        return point
 
     def __minPoint(self, points):
         min = self.box_delta_y_up ** 2 + self.box_delta_x_left ** 2
