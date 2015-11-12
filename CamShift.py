@@ -8,6 +8,8 @@ class camShiftTracker(object):
     roi_hist = None
 
     def __init__(self, r, c):
+        self.row = r
+        self.column = c
         self.window_width = 2
         self.window_height = 5
 
@@ -19,7 +21,7 @@ class camShiftTracker(object):
     def initFromFirstFrame(self, frame):
         print '====================== MeanShift: init frame ==================================='
         # set up the ROI for tracking
-        roi = frame[self.r : self.r+self.h, self.c : self.c+self.w]
+        roi = frame[self.row : self.row+self.window_height, self.column : self.column+self.window_width]
         print 'roi shape: ', roi.shape
 
         hsv_roi =  cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
@@ -64,7 +66,7 @@ class camShiftTracker(object):
 
         # apply meanshift to get the new location
         # ret, self.track_window = cv2.meanShift(dst, self.track_window, self.term_crit)
-        ret, self.track_window = cv2.CamShift(dst_cutted, self.track_window, self.term_crit)
+        ret, self.track_window = cv2.CamShift(dst_cutted, self.track_window, self.term_critteria)
         self.track_window = (self.track_window[0] + col_offset, self.track_window[1] + row_offset, self.track_window[2], self.track_window[3])
 
 

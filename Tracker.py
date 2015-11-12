@@ -52,7 +52,7 @@ class Tracker(object):
         # after tracker, move far points from using camshift tracker
         camshift_trackers = self.camshift_tracker.values()
         for i in range(len(camshift_trackers)):
-            shouldRemove = True
+            shouldRemove = False
 
             for j in range(i+1, len(camshift_trackers)):
                 if self.__distance(self.points[i], self.points[j]) > self.dist_threshold:
