@@ -2,20 +2,20 @@ import numpy as np
 import cv2
 
 class camShiftTracker(object):
-    roi = None
-    hsv_roi = None
-    mask = None
-    roi_hist = None
 
-    # setup initial location of window
-    r, h, c, w = 50, 5, 1117, 2
+    def __init__(self, r, c):
+        self.roi = None
+        self.hsv_roi = None
+        self.mask = None
+        self.roi_hist = None
 
-    # r,h,c,w = 110, 2, 1153, 2
-    track_window = (c, r, w, h)
+        self.window_width = 2
+        self.window_height = 5
 
-    # Setup the termination criteria, either 10 iteration or move by atleast 1 pt
-    term_crit = ( cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 50, 1 )
-    # term_crit = ( cv2.TERM_CRITERIA_EPS , 50)
+        self.track_window = (c, r, self.window_width, self.window_height)
+        # Setup the termination criteria
+        self.term_critteria = ( cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 50, 1 )
+
 
     def initFromFirstFrame(self, frame):
         print '====================== MeanShift: init frame ==================================='
