@@ -96,7 +96,7 @@ def main():
             warped_left_mid_right_cropped = crop_img(warped_left_mid_right)
             background = background_ext.apply(warped_left_mid_right_cropped)
 
-            # if(fr == 1200):
+            # if(fr == 1500):
                 # plt.imshow(warped_left_mid_right_cropped)
                 # plt.show()
                 # break
@@ -104,9 +104,10 @@ def main():
             if fr == 0:
                 mean_shift_tracker.initFromFirstFrame(warped_left_mid_right_cropped)
                 # set fr to 800 after initialize to speed up test
-                fr = 1200
+                fr = 1500
                 # mean_shift_tracker.setTrack_window((984,76,5,11)) # set frame number for fr 800
-                mean_shift_tracker.setTrack_window((940,81,5,11)) # set frame number for fr 1400
+                # mean_shift_tracker.setTrack_window((940,81,5,11)) # set frame number for fr 1200
+                mean_shift_tracker.setTrack_window((927,64,5,11)) # set frame number for fr 1500
                 cap_left.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
                 cap_mid.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
                 cap_right.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
