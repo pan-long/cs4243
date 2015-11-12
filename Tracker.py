@@ -8,10 +8,10 @@ import numpy as np
 class Tracker(object):
     area_threshold = 10
 
-    box_delta_y_up = 10
-    box_delta_y_down = 3
-    box_delta_x_left = 5
-    box_delta_x_right = 5
+    box_delta_y_up = 20
+    box_delta_y_down = 5
+    box_delta_x_left = 20
+    box_delta_x_right = 20
 
     def __init__(self, background, is_scaled, points):
         self.points = points
