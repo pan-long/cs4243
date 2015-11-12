@@ -42,6 +42,7 @@ def crop_img(img):
     return img[crop_image_rect['min_y']:crop_image_rect['max_y'], crop_image_rect['min_x']: crop_image_rect['max_x']]
 
 
+
 def main():
     stitcher = Stitcher()
     if config_scale:
@@ -78,6 +79,9 @@ def main():
         frame_left = cv2.resize(frame_left, scaled_size)
         frame_mid = cv2.resize(frame_mid, scaled_size)
         frame_right = cv2.resize(frame_right, scaled_size)
+
+        # Adjust the brightness difference.
+        frame_mid = cv2.convertScaleAbs(frame_mid, alpha=0.92)
 
         if status_left and status_mid and status_right:
             warped_left_mid = stitcher.stitch(frame_mid, frame_left, H_left_mid)
