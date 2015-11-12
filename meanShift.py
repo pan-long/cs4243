@@ -96,6 +96,8 @@ class meanShiftTracker(object):
       return c+w/2, r+h/2
 
 
+   # TODO: option1. expand search area should be finding the maximum connected component of the intensity white regions
+   #       option2. smooth the backprojected img so that no hollow shapes are present
    def adjustSearchArea(self, cur_roi_img, full_img, r_start, r_end, c_start, c_end):
       white_region_thresh = 10
       # check roi top
@@ -107,7 +109,7 @@ class meanShiftTracker(object):
             row = r_start
             while(full_img[row][col] > white_region_thresh):
                row -= 1
-            row += 1
+            row += 1 # back to last white point
             if(row < r_top):
                r_top = row
 
@@ -120,7 +122,7 @@ class meanShiftTracker(object):
             col = c_start
             while(full_img[row][col] > white_region_thresh):
                col -= 1
-            col += 1
+            col += 1 # back to last white point
             if(col < c_left):
                c_left = col
 
@@ -134,7 +136,7 @@ class meanShiftTracker(object):
             while(full_img[row][col] > white_region_thresh):
                col += 1
             # if the col is larger than previous checked ones
-            col -= 1
+            col -= 1 # back to last white point
             if(col > c_right):
                c_right = col
 
@@ -151,8 +153,8 @@ class meanShiftTracker(object):
             if(row > r_bottom):
                r_bottom = row
 
-      # To deal with the case where there is empty in the middle but like a contour case, pad extra to the 4 sides
-      pad_extra = 5
+      # To deal with the case where there is empty in the middle but like a contour case (hollow shape), pad extra to the 4 sides
+      pad_extra = 3 # in pixel
       return full_img[r_top - pad_extra:r_bottom + 1 + pad_extra, c_left - pad_extra:c_right + 1 + pad_extra], r_top - pad_extra, r_bottom + pad_extra, c_left - pad_extra, c_right + pad_extra
 
    def shrinkSearchArea(self, cur_roi_img, full_img, r_start, r_end, c_start, c_end):
@@ -276,9 +278,9 @@ class meanShiftTracker(object):
       print "before Camshift:", self.track_window
       ret, self.track_window = cv2.CamShift(dst_cutted, self.track_window, self.term_crit)
 
-      track_window_img = dst_cutted[self.track_window[1]:self.track_window[1] + self.track_window[3], self.track_window[0]:self.track_window[0] + self.track_window[2]]
-      cv2.imshow("track_window_img after CamShift", track_window_img)
-      cv2.waitKey(0)
+      # track_window_img = dst_cutted[self.track_window[1]:self.track_window[1] + self.track_window[3], self.track_window[0]:self.track_window[0] + self.track_window[2]]
+      # cv2.imshow("track_window_img after CamShift", track_window_img)
+      # cv2.waitKey(0)
       # set offset
       self.track_window = (self.track_window[0] + col_offset, self.track_window[1] + row_offset, self.track_window[2], self.track_window[3])
       print "track window after CamShift on whole window:", self.track_window
@@ -286,12 +288,12 @@ class meanShiftTracker(object):
       dst_cutted_after_cam_shift = dst[self.track_window[1]:self.track_window[1] + self.track_window[3], self.track_window[0]:self.track_window[0] + self.track_window[2]]
       cv2.imshow("dst_cutted_after_cam_shift", dst_cutted_after_cam_shift)
       cv2.waitKey(0)
-      # shrink after Camshift
-      # dst_cutted_after_cam_shift, r_top, r_bottom, c_left, c_right = self.shrinkSearchArea(dst_cutted_after_cam_shift, dst, self.track_window[1], self.track_window[1] + self.track_window[3], self.track_window[0], self.track_window[0] + self.track_window[2])
-      # if( c_right - c_left + 1 > self.track_window_cutting_width_thresh and r_bottom - r_top + 1 > self.track_window_cutting_width_thresh):
-      #    self.track_window = (c_left, r_top, c_right - c_left + 1, r_bottom - r_top + 1)
-      #    cv2.imshow("dst_cutted_after_cam_shift after shrink #", dst_cutted_after_cam_shift)
-      #    cv2.waitKey(0)
+      # # shrink after Camshift
+      # dst_cutted_after_cam_shift, r_top, r_bottom, c_left, c_right = self.shrinkSearchArea(dst_cutted_after_cam_shift, dst, self.track_window[1], self.track_window[1] + self.track_window[3] - 1, self.track_window[0], self.track_window[0] + self.track_window[2] - 1)
+      # # if( c_right - c_left + 1 > self.track_window_cutting_width_thresh and r_bottom - r_top + 1 > self.track_window_cutting_width_thresh):
+      # #    self.track_window = (c_left, r_top, c_right - c_left + 1, r_bottom - r_top + 1)
+      # cv2.imshow("dst_cutted_after_cam_shift after shrink #", dst_cutted_after_cam_shift)
+      # cv2.waitKey(0)
 
       # self.adjustTrackWindowIfTooLarge(pre_track_window)
 
