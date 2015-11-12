@@ -8,7 +8,7 @@ import numpy as np
 
 class Tracker(object):
     area_threshold = 10
-    dist_threshold = 10
+    dist_threshold = 20
 
     box_delta_y_up = 20
     box_delta_y_down = 5
@@ -50,17 +50,15 @@ class Tracker(object):
 
 
         # after tracker, move far points from using camshift tracker
-        camshift_trackers = self.camshift_tracker.values()
-        for i in range(len(camshift_trackers)):
-            shouldRemove = False
-
-            for j in range(i+1, len(camshift_trackers)):
-                if self.__distance(self.points[i], self.points[j]) > self.dist_threshold:
-                    shouldRemove = True
+        shouldRemove = []
+        for i in self.camshift_tracker:
+            for j in self.camshift_tracker:
+                if i != j and self.__distance(self.points[i], self.points[j]) > self.dist_threshold:
+                    shouldRemove.append(i)
                     break
 
-            if shouldRemove:
-                del self.camshift_tracker[i]
+        for i in shouldRemove:
+            del self.camshift_tracker[i]
 
         return  self.points
 

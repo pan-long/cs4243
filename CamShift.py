@@ -7,6 +7,8 @@ class camShiftTracker(object):
     hsv_roi = None
     roi_hist = None
 
+    margin = 20
+
     def __init__(self, r, c):
         self.row = r
         self.column = c
@@ -24,7 +26,7 @@ class camShiftTracker(object):
         roi = frame[self.row : self.row+self.window_height, self.column : self.column+self.window_width]
         print 'roi shape: ', roi.shape
 
-        hsv_roi =  cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
+        hsv_roi = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
         mask = cv2.inRange(hsv_roi, np.array((0., 0., 0.)), np.array((180., 255., 255.)))
         roi_hist = cv2.calcHist([hsv_roi],[0], mask, [180], [0, 180])
         cv2.normalize(roi_hist,roi_hist, 0, 255, cv2.NORM_MINMAX)
@@ -34,52 +36,27 @@ class camShiftTracker(object):
         self.mask = mask
         self.roi_hist = roi_hist
 
-        # cv2.rectangle(frame, (self.c, self.r), (self.c+self.w, self.r+self.h), (0, 0, 255), 1)
-        # cv2.imshow("temp_ret", frame)
-        # cv2.waitKey(0)
-
 
     def trackFrame(self, frame):
-        # cutted_frame = frame[self.track_window[1] - 10:self.track_window[1] + self.track_window[3] + 10, self.track_window[0] - 10 :self.track_window[0] + self.track_window[2] + 10]
-        # cv2.imshow("cutted_frame", cutted_frame)
-        # cv2.waitKey(0)
-        # hsv = cv2.cvtColor(frame[self.track_window[1] - 10:self.track_window[1] + self.track_window[3] + 10, self.track_window[0] - 10 :self.track_window[0] + self.track_window[2] + 10 ], cv2.COLOR_BGR2HSV)
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         # compensate_c = self.track_window[0] - 10
         # compensate_r = self.track_window[1] - 10
-        print hsv.shape
-        print self.roi_hist.shape
 
         dst = cv2.calcBackProject([hsv], [0], self.roi_hist, [0,180], 1)
 
-        dst_cutted = dst[self.track_window[1] - 20 : self.track_window[1] + self.track_window[3] + 20, \
-                   self.track_window[0] - 20 : self.track_window[0] + self.track_window[2] + 20]
+        dst_cutted = dst[self.track_window[1] - self.margin : self.track_window[1] + self.track_window[3] + self.margin, \
+                   self.track_window[0] - self.margin : self.track_window[0] + self.track_window[2] + self.margin]
 
-        col_offset = self.track_window[0] - 20
-        row_offset = self.track_window[1] - 20
+        col_offset = self.track_window[0] - self.margin
+        row_offset = self.track_window[1] - self.margin
 
-        # cv2.imshow("calcBackProject", dst)
-        # cv2.waitKey(0)
+        if len(dst_cutted) > 0:
+            # apply meanshift to get the new location
+            ret, self.track_window = cv2.CamShift(dst_cutted, self.track_window, self.term_critteria)
+            self.track_window = (self.track_window[0] + col_offset, self.track_window[1] + row_offset, self.track_window[2], self.track_window[3])
 
-        # cv2.imshow("dst_cutted", dst_cutted)
-        # cv2.waitKey(0)
+            print "self.track_window:", self.track_window
 
-        # apply meanshift to get the new location
-        # ret, self.track_window = cv2.meanShift(dst, self.track_window, self.term_crit)
-        ret, self.track_window = cv2.CamShift(dst_cutted, self.track_window, self.term_critteria)
-        self.track_window = (self.track_window[0] + col_offset, self.track_window[1] + row_offset, self.track_window[2], self.track_window[3])
-
-
-        print "self.track_window:", self.track_window
-        # self.track_window[1] += compensate_r
-        # self.track_window[0] += compensate_c
-        # self.track_window = (self.track_window[0] + compensate_c, self.track_window[1] + compensate_r, self.track_window[2], self.track_window[3])
-        print "self.track_window after compensate:", self.track_window
-
-        # Draw it on image
         x, y, w, h = self.track_window
-        # cv2.rectangle(frame, (x,y), (x+w, y+h), 255, 1)
-        # cv2.imshow('img2', frame)
-        # cv2.waitKey(0)
 
-        return [(x + w) / 2, (y + h) / 2]
+        return [(y + h) / 2, (x + w) / 2]
