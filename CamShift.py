@@ -2,13 +2,12 @@ import numpy as np
 import cv2
 
 class camShiftTracker(object):
+    roi = None
+    mask = None
+    hsv_roi = None
+    roi_hist = None
 
     def __init__(self, r, c):
-        self.roi = None
-        self.hsv_roi = None
-        self.mask = None
-        self.roi_hist = None
-
         self.window_width = 2
         self.window_height = 5
 
@@ -24,8 +23,8 @@ class camShiftTracker(object):
         print 'roi shape: ', roi.shape
 
         hsv_roi =  cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
-        mask = cv2.inRange(hsv_roi, np.array((0.,0.,0.)), np.array((180.,255.,255.)))
-        roi_hist = cv2.calcHist([hsv_roi],[0], mask, [180], [0,180])
+        mask = cv2.inRange(hsv_roi, np.array((0., 0., 0.)), np.array((180., 255., 255.)))
+        roi_hist = cv2.calcHist([hsv_roi],[0], mask, [180], [0, 180])
         cv2.normalize(roi_hist,roi_hist, 0, 255, cv2.NORM_MINMAX)
 
         self.roi = roi
@@ -38,7 +37,7 @@ class camShiftTracker(object):
         # cv2.waitKey(0)
 
 
-    def trackOneFrame(self, frame):
+    def trackFrame(self, frame):
         # cutted_frame = frame[self.track_window[1] - 10:self.track_window[1] + self.track_window[3] + 10, self.track_window[0] - 10 :self.track_window[0] + self.track_window[2] + 10]
         # cv2.imshow("cutted_frame", cutted_frame)
         # cv2.waitKey(0)
@@ -77,8 +76,8 @@ class camShiftTracker(object):
 
         # Draw it on image
         x, y, w, h = self.track_window
-        cv2.rectangle(frame, (x,y), (x+w, y+h), 255, 1)
-        cv2.imshow('img2', frame)
-        cv2.waitKey(0)
+        # cv2.rectangle(frame, (x,y), (x+w, y+h), 255, 1)
+        # cv2.imshow('img2', frame)
+        # cv2.waitKey(0)
 
-        return frame
+        return [(x + w) / 2, (y + h) / 2]

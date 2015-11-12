@@ -1,5 +1,6 @@
 from cv2 import cv
 from functools import partial
+from CamShift import camShiftTracker
 
 import cv2
 import numpy as np
@@ -7,6 +8,7 @@ import numpy as np
 
 class Tracker(object):
     area_threshold = 10
+    dist_threshold = 10
 
     box_delta_y_up = 10
     box_delta_y_down = 3
@@ -14,15 +16,52 @@ class Tracker(object):
     box_delta_x_right = 5
 
     def __init__(self, background, is_scaled, points):
+        self.centers = []
         self.points = points
         self.velocities = [[0, 0] for i in range(len(points))]
         self.background = background
 
-    def tracking(self, img):
-        for i in range(len(self.points)):
-            self.points[i] = self.trackingPoint(img, i)
+        self.camshift_tracker = {}
 
-        ## TODO: check 2 points mapped to same contour
+    def tracking(self, img):
+        # make close points to use camshift tracker
+        for i in range(len(self.points)):
+            point = self.points[i]
+
+            for j in range(i+1, len(self.points)):
+                tmp = self.points[j]
+
+                if (i not in self.camshift_tracker) and self.__distance(point, tmp) < self.dist_threshold:
+                    camshift_tracker1 = camShiftTracker(point[0], point[1])
+                    camshift_tracker1.initFromFirstFrame(img)
+                    self.camshift_tracker[i] = camshift_tracker1
+
+                    camshift_tracker2 = camShiftTracker(tmp[0], tmp[1])
+                    camshift_tracker2.initFromFirstFrame(img)
+                    self.camshift_tracker[j] = camshift_tracker2
+
+
+        # tracking points
+        for i in range(len(self.points)):
+            if i not in self.camshift_tracker:
+                self.points[i] = self.trackingPoint(img, i)
+            else:
+                self.points[i] = self.camshift_tracker[i].trackFrame(img)
+
+
+        # after tracker, move far points from using camshift tracker
+        camshift_trackers = self.camshift_tracker.values()
+        for i in range(len(camshift_trackers)):
+            shouldRemove = True
+
+            for j in range(i+1, len(camshift_trackers)):
+                if self.__distance(self.points[i], self.points[j]) > self.dist_threshold:
+                    shouldRemove = True
+                    break
+
+            if shouldRemove:
+                del self.camshift_tracker[i]
+
         return  self.points
 
     def trackingPoint(self, img, idx):
@@ -78,9 +117,13 @@ class Tracker(object):
         min = self.box_delta_y_up ** 2 + self.box_delta_x_left ** 2
         minPt = []
         for i in range(len(points)):
-            dist = (int(points[i][0]) - self.box_delta_y_up) ** 2 + (int(points[i][1]) - self.box_delta_x_left) ** 2
+            dist = self.__distance(points[i], [self.box_delta_y_up, self.box_delta_x_left])
+            # dist = (int(points[i][0]) - self.box_delta_y_up) ** 2 + (int(points[i][1]) - self.box_delta_x_left) ** 2
             if dist < min:
                 min = dist
                 minPt = points[i]
 
         return minPt
+
+    def __distance(self, p1, p2):
+        return (int(p1[0]) - p2[0]) ** 2 + (int(p1[1]) - p2[1]) ** 2
