@@ -52,7 +52,19 @@ def minPoint(points):
 
     return minPt
 
+# def testDictionary(test_dict):
+#     test_dict["{r}_{c}".format(r = 2, c = 2)] = 1
+#     return
+
 def main():
+    ### test ###
+    # test_dict = {}
+    # print "{r}_{c}".format(r = 1, c = 2) in test_dict
+    # test_dict["{r}_{c}".format(r = 1, c = 2)] = 1
+    # print "test_dict before pass in:", test_dict
+    # testDictionary(test_dict)
+    # print "test_dict after pass in:", test_dict
+    # raise ValueError("temp stop")
     stitcher = Stitcher()
     if config_scale:
         background = cv2.imread('background_scaled.jpg')
