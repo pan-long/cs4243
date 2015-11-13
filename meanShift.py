@@ -27,7 +27,8 @@ class meanShiftTracker(object):
    track_window_cutting_width_thresh = 3
    track_window_cutting_height_thresh = 8
 
-   white_region_thresh = 10
+   white_region_thresh = 1
+   black_intensity = 0
 
    dilation_kernel = np.ones((2,2), np.uint8)
 
@@ -99,20 +100,61 @@ class meanShiftTracker(object):
 
       return c+w/2, r+h/2
 
-   # def searchConnectedNeighbours(self,cur_r, cur_c, memorization):
-   #    if(not "{r}_{c}".format(r = cur_r, c = cur_c) in memorization):
-   #       memorization["{r}_{c}".format(r = cur_r, c = cur_c)] = 1
+   def findConnectedComponentWithinROI(self, cur_roi_img, full_img, r_start, r_end, c_start, c_end):
+      return
 
-   #    for i in range(cur_r -1 , cur_r + 1 + 1):
-   #       for j in range (cur_c -1, cur_c + 1 + 1):
-   #          if( i != cur_r and j != cur_c):
-   #             # i, j has intensity greater than black and i, j is not checked
-   #             if()
-   #    return
+   def searchConnectedNeighbours(self,full_img, cur_r, cur_c, memorization):
+      if(not "{r}_{c}".format(r = cur_r, c = cur_c) in memorization):
+         memorization["{r}_{c}".format(r = cur_r, c = cur_c)] = 1
 
-   # def expandSearchAreaConnectedComponent(self, cur_roi_img, full_img, r_start, r_end, c_start, c_end):
+      for i in range(cur_r -1 , cur_r + 1 + 1):
+         for j in range (cur_c -1, cur_c + 1 + 1):
+            if( not (i == cur_r and j == cur_c) ):
+            # Do not consider diagonal:
+            # if(not (i == cur_r and j == cur_c) and \
+            #    not (i == cur_r - 1 and j == cur_c - 1) and \
+            #    not (i == cur_r - 1 and j == cur_c + 1) and \
+            #    not (i == cur_r + 1 and j == cur_c + 1) and \
+            #    not (i == cur_r + 1 and j == cur_c - 1)):
+               # i, j has intensity greater than black and i, j is not checked
+               if(full_img[i][j] > self.white_region_thresh and (not "{r}_{c}".format(r = i, c = j) in memorization)):
+                  self.searchConnectedNeighbours(full_img, i, j, memorization)
 
-   #    return
+   # r_start, r_end, c_start, c_end are all inclusive
+   def expandSearchAreaConnectedComponentAndSuppress(self, cur_roi_img, full_img, r_start, r_end, c_start, c_end):
+      memorization = {}
+      for i in range(r_start, r_end + 1):
+         for j in range(c_start, c_end + 1):
+            if(full_img[i][j] > self.white_region_thresh):
+               self.searchConnectedNeighbours(full_img, i, j, memorization)
+
+      print "end of searching connected component, memorization:\n", memorization
+      r_min = r_start
+      r_max = r_end
+      c_min = c_start
+      c_max = c_end
+      for key, value in memorization.iteritems():
+         r_c_chars = key.split("_")
+         r = int(r_c_chars[0])
+         c = int(r_c_chars[1])
+         # update r_min, r_max, c_min, c_max
+         if(r < r_min):
+            r_min = r
+         if(r > r_max):
+            r_max = r
+         if(c < c_min):
+            c_min = c
+         if(c > c_max):
+            c_max = c
+      # cut out the new roi 
+      new_roi_img = np.copy(full_img[r_min:r_max +1, c_min:c_max + 1])
+      # suppress the ones not in memorization
+      for i in range(r_min, r_max + 1):
+         for j in range(c_min, c_max + 1):
+            if(not "{r}_{c}".format(r = i, c = j) in memorization):
+               # suppress the current pixel in new_roi_img
+               new_roi_img[i - r_min][j - c_min] = self.black_intensity
+      return new_roi_img, r_min, r_max, c_min, c_max
 
    # TODO: option1. expand search area should be finding the maximum connected component of the intensity white regions
    #       option2. smooth the backprojected img so that no hollow shapes are present
@@ -261,7 +303,7 @@ class meanShiftTracker(object):
       print self.roi_hist.shape
 
       dst = cv2.calcBackProject([hsv], [0], self.roi_hist, [0,180], 1)
-      dst = cv2.dilate(dst, self.dilation_kernel, iterations = 1)
+      # dst = cv2.dilate(dst, self.dilation_kernel, iterations = 1)
       cv2.imshow("calcBackProject", dst)
       cv2.waitKey(0)
 
@@ -274,8 +316,8 @@ class meanShiftTracker(object):
   
 
       # Should be doing expansion first then shrink!!!
-      # dst_cutted, r_top, r_bottom, c_left, c_right = self.adjustSearchArea(dst_cutted, dst, r_top, r_bottom, c_left, c_right)
-      dst_cutted, r_top, r_bottom, c_left, c_right = self.adjustSearchArea(dst_cutted, dst, self.track_window[1] - neighbourhood_size, self.track_window[1] + self.track_window[3] + neighbourhood_size - 1, self.track_window[0] - neighbourhood_size, self.track_window[0] + self.track_window[2] + neighbourhood_size - 1)
+      # dst_cutted, r_top, r_bottom, c_left, c_right = self.adjustSearchArea(dst_cutted, dst, self.track_window[1] - neighbourhood_size, self.track_window[1] + self.track_window[3] + neighbourhood_size - 1, self.track_window[0] - neighbourhood_size, self.track_window[0] + self.track_window[2] + neighbourhood_size - 1)
+      dst_cutted, r_top, r_bottom, c_left, c_right = self.expandSearchAreaConnectedComponentAndSuppress(dst_cutted, dst, self.track_window[1] - neighbourhood_size, self.track_window[1] + self.track_window[3] + neighbourhood_size - 1, self.track_window[0] - neighbourhood_size, self.track_window[0] + self.track_window[2] + neighbourhood_size - 1)
       print "dst_cutted.shape after expansion:", dst_cutted.shape
       cv2.imshow("dst_cutted after expansion", dst_cutted)
       cv2.waitKey(0)

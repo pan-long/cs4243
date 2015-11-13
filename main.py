@@ -59,11 +59,23 @@ def minPoint(points):
 def main():
     ### test ###
     # test_dict = {}
-    # print "{r}_{c}".format(r = 1, c = 2) in test_dict
+    # print not "{r}_{c}".format(r = 1, c = 2) in test_dict
     # test_dict["{r}_{c}".format(r = 1, c = 2)] = 1
     # print "test_dict before pass in:", test_dict
     # testDictionary(test_dict)
     # print "test_dict after pass in:", test_dict
+    # temp = np.ones ((10,10))
+    # temp_cutted = np.copy(temp[3:6, 3:6])
+    # for i in range(0, temp_cutted.shape[0]):
+    #     for j in range(0, temp_cutted.shape[1]):
+    #         temp_cutted[i][j] = 100
+    # print temp
+    # # temp = "{r}_{c}".format(r = 1, c = 2)
+    # # chars = temp.split("_")
+    # # r = int(chars[0])
+    # # c = int(chars[1])
+    # # print chars
+    # # print r, " ", c
     # raise ValueError("temp stop")
     stitcher = Stitcher()
     if config_scale:
