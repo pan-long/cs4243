@@ -98,6 +98,9 @@ def main():
     point = [123, 1156]
     tracker = Tracker(config_scale, point)
 
+    fourcc = cv2.cv.CV_FOURCC('m', 'p', '4', 'v') # note the lower case
+    video_out = cv2.VideoWriter('out_put_mean_shift.mp4',fourcc, 24.0, (2100,250), True)
+
     mean_shift_tracker = meanShift.meanShiftTracker()
     fr = 0
     # for fr in range(frame_count):
@@ -136,7 +139,8 @@ def main():
                 cap_mid.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
                 cap_right.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
             else:
-                mean_shift_tracker.trackOneFrame(warped_left_mid_right_cropped)
+                mean_shift_frame = mean_shift_tracker.trackOneFrame(warped_left_mid_right_cropped)
+                video_out.write(mean_shift_frame)
                 fr += 1
 
             # point = tracker.tracking(background)

@@ -40,8 +40,8 @@ class meanShiftTracker(object):
       print '====================== MeanShift: init frame ==================================='
       # set up the ROI for tracking
       roi = frame[self.r : self.r+self.h, self.c : self.c+self.w]
-      cv2.imshow("roi",roi)
-      cv2.waitKey(0)
+      # cv2.imshow("roi",roi)
+      # cv2.waitKey(0)
 
       hsv_roi =  cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
       mask = cv2.inRange(hsv_roi, np.array((0.,0.,0.)), np.array((180.,255.,255.)))
@@ -65,14 +65,14 @@ class meanShiftTracker(object):
       if((current_window[2] >= self.track_window_width_scale_thresh * pre_track_window[2] and current_window[2] >= self.track_window_width_absolute_thresh ) \
          or (current_window[3] >= self.track_window_height_scale_thresh * pre_track_window[3] and current_window[3] >= self.track_window_height_absolute_thresh)):
          # adjust to previous track window
-         print "@@@@ want to adjust to:", current_window
-         print "@@@@ but adjust to previous window:", pre_track_window
+         # print "@@@@ want to adjust to:", current_window
+         # print "@@@@ but adjust to previous window:", pre_track_window
 
          # we need a small adjustment of offset in the movement direction
          offset_c, offset_r = self.findOffsetMovement(pre_track_window,current_window) 
 
          self.track_window = self.newTrackWindowWithCentreOffsets(pre_track_window, offset_c, offset_r)
-         print "@@@@ finally adjusted window:", self.track_window
+         # print "@@@@ finally adjusted window:", self.track_window
 
    def newTrackWindowWithCentreOffsets(self,track_window, offset_c, offset_r):
       c = track_window[0]
@@ -90,7 +90,7 @@ class meanShiftTracker(object):
       # dy = cur_centre_y - pre_centre_y
       dx = current_window[0] - pre_track_window[0]
       dy = current_window[1] - pre_track_window[1]
-      print "@@@ dx, dy of centres:", dx, ", ", dy
+      # print "@@@ dx, dy of centres:", dx, ", ", dy
 
       return int(dx*offset_scale), int(dy*offset_scale)
 
@@ -133,7 +133,7 @@ class meanShiftTracker(object):
             if(full_img[i][j] > self.white_region_thresh):
                self.searchConnectedNeighbours(full_img, i, j, memorization)
 
-      print "end of searching connected component, memorization:\n", memorization
+      # print "end of searching connected component, memorization:\n", memorization
       r_min = r_start
       r_max = r_end
       c_min = c_start
@@ -168,7 +168,7 @@ class meanShiftTracker(object):
       r_top = r_start
       for i in range(0, cur_roi_img.shape[1]):
          if(cur_roi_img[0][i] > self.white_region_thresh):
-            print "!!! r_top has white_region_thresh"
+            # print "!!! r_top has white_region_thresh"
             col = c_start + i
             row = r_start
             while(full_img[row][col] > self.white_region_thresh):
@@ -181,7 +181,7 @@ class meanShiftTracker(object):
       c_left = c_start
       for i in range(0, cur_roi_img.shape[0]):
          if(cur_roi_img[i][0] > self.white_region_thresh):
-            print "!!! c_left has white_region_thresh"
+            # print "!!! c_left has white_region_thresh"
             row = r_start + i
             col = c_start
             while(full_img[row][col] > self.white_region_thresh):
@@ -194,7 +194,7 @@ class meanShiftTracker(object):
       c_right = c_end
       for i in range(0, cur_roi_img.shape[0]):
          if(cur_roi_img[i][cur_roi_img.shape[1]-1] > self.white_region_thresh):
-            print "!!! c_right has white_region_thresh"
+            # print "!!! c_right has white_region_thresh"
             row = r_start + i
             col = c_end
             while(full_img[row][col] > self.white_region_thresh):
@@ -208,7 +208,7 @@ class meanShiftTracker(object):
       r_bottom = r_end
       for i in range(0, cur_roi_img.shape[1]):
          if(cur_roi_img[cur_roi_img.shape[0]-1][i] > self.white_region_thresh):
-            print "!!! r_bottom has white_region_thresh"
+            # print "!!! r_bottom has white_region_thresh"
             col = c_start + i
             row = r_end
             while(full_img[row][col] > self.white_region_thresh):
@@ -222,7 +222,7 @@ class meanShiftTracker(object):
       return full_img[r_top - pad_extra:r_bottom + 1 + pad_extra, c_left - pad_extra:c_right + 1 + pad_extra], r_top - pad_extra, r_bottom + pad_extra, c_left - pad_extra, c_right + pad_extra
 
    def shrinkSearchArea(self, cur_roi_img, full_img, r_start, r_end, c_start, c_end):
-      print "r_start, r_end, c_start, c_end:", (r_start, r_end, c_start, c_end)
+      # print "r_start, r_end, c_start, c_end:", (r_start, r_end, c_start, c_end)
       black_intensity = 0
       # shrink top
       r_top = r_start
@@ -292,7 +292,7 @@ class meanShiftTracker(object):
       if(len(bottoms) > 0):
          r_bottom = np.max(bottoms)
 
-      print "in shrinkSearchArea r_top, r_bottom, c_left, c_right:", r_top, r_bottom, c_left, c_right
+      # print "in shrinkSearchArea r_top, r_bottom, c_left, c_right:", r_top, r_bottom, c_left, c_right
       return full_img[r_top:r_bottom + 1, c_left:c_right + 1], r_top, r_bottom, c_left, c_right
 
 
@@ -304,33 +304,33 @@ class meanShiftTracker(object):
       hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
       # compensate_c = self.track_window[0] - 10
       # compensate_r = self.track_window[1] - 10
-      print hsv.shape
-      print self.roi_hist.shape
+      # print hsv.shape
+      # print self.roi_hist.shape
 
       dst = cv2.calcBackProject([hsv], [0], self.roi_hist, [0,180], 1)
       # dst = cv2.dilate(dst, self.dilation_kernel, iterations = 1)
-      cv2.imshow("calcBackProject", dst)
-      cv2.waitKey(3)
+      # cv2.imshow("calcBackProject", dst)
+      # cv2.waitKey(0)
 
       neighbourhood_size = 0
       # track_window: (col,row,width,height)
       dst_cutted = dst[self.track_window[1] - neighbourhood_size:self.track_window[1] + self.track_window[3] + neighbourhood_size, self.track_window[0] - neighbourhood_size :self.track_window[0] + self.track_window[2] + neighbourhood_size]
-      cv2.imshow("dst_cutted before expansion", dst_cutted)
-      cv2.waitKey(3)     
+      # cv2.imshow("dst_cutted before expansion", dst_cutted)
+      # cv2.waitKey(0)     
 
   
 
       # Should be doing expansion first then shrink!!!
       # dst_cutted, r_top, r_bottom, c_left, c_right = self.adjustSearchArea(dst_cutted, dst, self.track_window[1] - neighbourhood_size, self.track_window[1] + self.track_window[3] + neighbourhood_size - 1, self.track_window[0] - neighbourhood_size, self.track_window[0] + self.track_window[2] + neighbourhood_size - 1)
       dst_cutted, r_top, r_bottom, c_left, c_right = self.expandSearchAreaConnectedComponentAndSuppress(dst_cutted, dst, self.track_window[1] - neighbourhood_size, self.track_window[1] + self.track_window[3] + neighbourhood_size - 1, self.track_window[0] - neighbourhood_size, self.track_window[0] + self.track_window[2] + neighbourhood_size - 1)
-      print "dst_cutted.shape after expansion:", dst_cutted.shape
-      cv2.imshow("dst_cutted after expansion", dst_cutted)
-      cv2.waitKey(3)
+      # print "dst_cutted.shape after expansion:", dst_cutted.shape
+      # cv2.imshow("dst_cutted after expansion", dst_cutted)
+      # cv2.waitKey(0)
 
       dst_cutted, r_top, r_bottom, c_left, c_right = self.shrinkSearchArea(dst_cutted, dst, r_top, r_bottom, c_left, c_right)
-      print "dst_cutted.shape after shrink:", dst_cutted.shape
-      cv2.imshow("dst_cutted after shrink", dst_cutted)
-      cv2.waitKey(3)   
+      # print "dst_cutted.shape after shrink:", dst_cutted.shape
+      # cv2.imshow("dst_cutted after shrink", dst_cutted)
+      # cv2.waitKey(0)   
 
       # col_offset = self.track_window[0] - neighbourhood_size
       # row_offset = self.track_window[1] - neighbourhood_size
@@ -345,7 +345,7 @@ class meanShiftTracker(object):
       # apply meanshift to get the new location
       # ret, self.track_window = cv2.meanShift(dst, self.track_window, self.term_crit)
       pre_track_window = self.track_window
-      print "before Camshift:", self.track_window
+      # print "before Camshift:", self.track_window
       ret, self.track_window = cv2.CamShift(dst_cutted, self.track_window, self.term_crit)
 
       # track_window_img = dst_cutted[self.track_window[1]:self.track_window[1] + self.track_window[3], self.track_window[0]:self.track_window[0] + self.track_window[2]]
@@ -353,11 +353,11 @@ class meanShiftTracker(object):
       # cv2.waitKey(0)
       # set offset
       self.track_window = (self.track_window[0] + col_offset, self.track_window[1] + row_offset, self.track_window[2], self.track_window[3])
-      print "track window after CamShift on full img:", self.track_window
+      # print "track window after CamShift on full img:", self.track_window
 
       dst_cutted_after_cam_shift = dst[self.track_window[1]:self.track_window[1] + self.track_window[3], self.track_window[0]:self.track_window[0] + self.track_window[2]]
-      cv2.imshow("dst_cutted_after_cam_shift", dst_cutted_after_cam_shift)
-      cv2.waitKey(3)
+      # cv2.imshow("dst_cutted_after_cam_shift", dst_cutted_after_cam_shift)
+      # cv2.waitKey(0)
 
       """
       shrink after Camshift, not needed
@@ -371,17 +371,17 @@ class meanShiftTracker(object):
       # self.adjustTrackWindowIfTooLarge(pre_track_window)
 
 
-      print "self.track_window:", self.track_window
+      # print "self.track_window:", self.track_window
       # self.track_window[1] += compensate_r
       # self.track_window[0] += compensate_c
       # self.track_window = (self.track_window[0] + compensate_c, self.track_window[1] + compensate_r, self.track_window[2], self.track_window[3])
-      print "self.track_window after compensate:", self.track_window
+      # print "self.track_window after compensate:", self.track_window
 
       # Draw it on image
       x, y, w, h = self.track_window
       cv2.rectangle(frame, (x,y), (x+w ,y+h), 255, 1)
-      cv2.imshow('img2', frame)
-      cv2.waitKey(3)
+      # cv2.imshow('img2', frame)
+      # cv2.waitKey(0)
 
       # k = cv2.waitKey(60) & 0xff
       # if k == 27:
