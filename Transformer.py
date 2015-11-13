@@ -2,6 +2,7 @@ import cv2
 import csv
 import numpy as np
 from scipy import ndimage
+from matplotlib import pyplot as plt
 
 frame_size = 7199
 football_field = cv2.imread('images/football_field.png')
@@ -18,10 +19,10 @@ class Transformer():
 
         # dimension of new image
         self.dst = np.array([
-            [0, 0],
-            [maxWidth - 1, 0],
-            [maxWidth - 1, maxHeight - 1],
-            [0, maxHeight - 1]], dtype = "float32")
+            [100, 50],
+            [maxWidth - 100, 50],
+            [maxWidth - 100, maxHeight - 50],
+            [100, maxHeight - 50]], dtype = "float32")
 
         self.M = cv2.getPerspectiveTransform(self.mask_points, self.dst)
 
@@ -32,19 +33,12 @@ class Transformer():
 
         return (x, y)
 
-    # def initMarker(self, points):
-    #   # positions before warp
-    #   self.marker_map = { 'C0': (71, 1153), \
-    #                       'R0': (80, 761), 'R1': (80, 1033), 'R2': (95, 1127), 'R3': (54, 1156), 'R4': (65, 1185), 'R5': (61, 1204), 'R6': (56, 1217), 'R7': (69, 1213), 'R8': (67, 1253), 'R9': (75, 1281), 'R10': (92, 1347), \
-    #                       'B0': (71, 1409), 'B1': (72, 2016), 'B2': (47, 1051), 'B3': (58, 1117), 'B4': (74, 1139), 'B5': (123, 1156), 'B6': (61, 1177), 'B7': (48, 1198), 'R8': (102, 1353)}
-
-
 def main():
     fourcc = cv2.cv.CV_FOURCC('m', 'p', '4', 'v')
     video_out = cv2.VideoWriter('output.mp4', fourcc, 24.0, (maxWidth, maxHeight), True)
 
     map = {}
-    files = ['R1', 'B2']
+    files = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'RE', 'B0', 'B1', 'B2', 'B3']
     file_readers = []
     transformer = Transformer(True)
 
@@ -62,8 +56,8 @@ def main():
             line = reader.readline().split(',')
             if len(line) > 2:
                 point = transformer.transform((int(line[1]), int(line[2])))
-                y_coordinates.append(int(point[0]))
-                x_coordinates.append(int(point[1]))
+                y_coordinates.append(int(point[1]))
+                x_coordinates.append(int(point[0]))
 
         x_coordinates = ndimage.convolve1d(x_coordinates, kern, 0)
         y_coordinates = ndimage.convolve1d(y_coordinates, kern, 0)
@@ -75,39 +69,53 @@ def main():
         with open(file_name, 'a') as csvfile:
             writer = csv.writer(csvfile, delimiter=',',)
             for j in range(frame_size):
-                writer.writerow([y_coordinates[j], x_coordinates[j]])
+                writer.writerow([x_coordinates[j], y_coordinates[j]])
 
     # open file readers
     for f in files:
         file_readers.append(open('track/' + f + '_smoothed.txt'))
 
+    prev_x_position = []
     for i in range(frame_size):
         print('===================== process frame: ',  i, ' ===========================')
 
         red_player_x = []
         blue_player_x = []
+        move_direction = 0
         field = np.array(football_field, np.uint8)
+
         for i in range(len(file_readers)):
             reader = file_readers[i]
             line = reader.readline().split(',')
             point = (int(line[0]), int(line[1]))
             font = cv2.FONT_HERSHEY_SIMPLEX
+            
+            # update movement direction
+            if len(prev_x_position) > i:
+                move_direction += (point[0] - prev_x_position[i])
+                prev_x_position[i] = point[0]
+            else:
+                prev_x_position.append(point[0])
+
             if files[i][0] == "B":
                 blue_player_x.append(point[0])
-                cv2.putText(field, files[i], point, font, 1, (255, 0, 0), 2, cv2.CV_AA)
+                cv2.putText(field, files[i], (point[0]-20, point[1]), font, 1, (255, 0, 0), 2, cv2.CV_AA)
             else:
                 red_player_x.append(point[0])
-                cv2.putText(field, files[i], point, font, 1, (0, 0, 255), 2, cv2.CV_AA)
+                cv2.putText(field, files[i], (point[0]-20, point[1]), font, 1, (0, 0, 255), 2, cv2.CV_AA)
         
-        red_max_x = np.amax(red_player_x)
-        blue_min_x = np.amax(blue_player_x)
-        cv2.line(field, (red_max_x, 0), (red_max_x, maxHeight), (0, 0, 255), 2) 
-        cv2.line(field, (blue_min_x, 0), (blue_min_x, maxHeight), (0, 0, 255), 2)
+        # draw off-site line
+        if move_direction > 0:
+            blue_min_x = np.amin(blue_player_x)
+            cv2.line(field, (blue_min_x, 0), (blue_min_x, maxHeight), (0, 0, 255), 2)
+        else:
+            red_max_x = np.amax(red_player_x)
+            cv2.line(field, (red_max_x, 0), (red_max_x, maxHeight), (0, 0, 255), 2) 
 
-        # cv2.imshow('result', field)
-        # cv2.waitKey(1)
+        cv2.imshow('result', field)
+        cv2.waitKey(1)
         
-        video_out.write(field)
+        # video_out.write(field)
 
 
 if __name__ == '__main__':
