@@ -17,8 +17,12 @@ class distCal (object):
         self.distance = 0
         self.actual_distance = 0
 
-    def getDist(self, pt1, pt2):
-        distance = np.sqrt(pt1 ** 2 + pt2 ** 2)
+    def getDist(self,pts):
+        shape = pts.shape
+        distance = 0
+        for i in range (shape):
+            distance += np.sqrt(pts[0] ** 2 + pts[1] ** 2)
+
         actual_distance = distance / 1067 * 110
 
         return actual_distance
