@@ -7,11 +7,14 @@ from Tracker import Tracker
 from Transformer import Transformer
 from matplotlib import pyplot as plt
 import meanShift
+import sys
+
+sys.setrecursionlimit(1000000)
 
 videos_path = 'videos/'
 videos = ['football_left.mp4', 'football_mid.mp4', 'football_right.mp4']
 
-config_scale = True
+config_scale = False
 
 if config_scale:
     image_down_scale_factor = 4
@@ -59,7 +62,8 @@ def minPoint(points):
 def main():
     ### test ###
     # test_dict = {}
-    # print not "{r}_{c}".format(r = 1, c = 2) in test_dict
+
+    # # print not "{r}_{c}".format(r = 1, c = 2) in test_dict
     # test_dict["{r}_{c}".format(r = 1, c = 2)] = 1
     # print "test_dict before pass in:", test_dict
     # testDictionary(test_dict)
@@ -99,7 +103,7 @@ def main():
     tracker = Tracker(config_scale, point)
 
     fourcc = cv2.cv.CV_FOURCC('m', 'p', '4', 'v') # note the lower case
-    video_out = cv2.VideoWriter('out_put_mean_shift.mp4',fourcc, 24.0, (2100,250), True)
+    video_out = cv2.VideoWriter('out_put_mean_shift.mp4',fourcc, 24.0, (8400,1000), True)
 
     mean_shift_tracker = meanShift.meanShiftTracker()
     fr = 0
@@ -122,25 +126,41 @@ def main():
             warped_left_mid_right = stitcher.stitch(warped_left_mid, frame_right, H_mid_right)
             warped_left_mid_right_cropped = crop_img(warped_left_mid_right)
             background = background_ext.apply(warped_left_mid_right_cropped)
+            
+            # plt.imshow(warped_left_mid_right_cropped)
+            # plt.show()
+            # break
 
             # if(fr == 1500):
-                # plt.imshow(warped_left_mid_right_cropped)
-                # plt.show()
-                # break
+            #     plt.imshow(warped_left_mid_right_cropped)
+            #     plt.show()
+            #     break
 
             if fr == 0:
                 mean_shift_tracker.initFromFirstFrame(warped_left_mid_right_cropped)
-                # set fr to 800 after initialize to speed up test
+                # # set fr to 800 after initialize to speed up test
                 fr = 1500
+                """
+                For Scaled down Video
+                """
                 # mean_shift_tracker.setTrack_window((984,76,5,11)) # set frame number for fr 800
                 # mean_shift_tracker.setTrack_window((940,81,5,11)) # set frame number for fr 1200
-                mean_shift_tracker.setTrack_window((927,64,5,11)) # set frame number for fr 1500
+                # mean_shift_tracker.setTrack_window((927,64,5,11)) # set frame number for fr 1500
+                # cap_left.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
+                # cap_mid.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
+                # cap_right.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
+                """
+                For Original Video
+                """
+                # mean_shift_tracker.setTrack_window((4341,250,6,13)) # for fr 0
+                mean_shift_tracker.setTrack_window((3506,257,6,13)) # for fr 1500
                 cap_left.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
                 cap_mid.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
                 cap_right.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
+                
             else:
                 mean_shift_frame = mean_shift_tracker.trackOneFrame(warped_left_mid_right_cropped)
-                video_out.write(mean_shift_frame)
+                # video_out.write(mean_shift_frame)
                 fr += 1
 
             # point = tracker.tracking(background)
