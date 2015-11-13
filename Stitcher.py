@@ -12,7 +12,7 @@ class Stitcher(object):
     """
 
     # Use the SIFT feature detector.
-    detector = cv2.SIFT()
+    # detector = cv2.SIFT()
 
     # Use Flann Matcher.
     FLANN_INDEX_KDTREE = 1  # bug: flann enums are missing
