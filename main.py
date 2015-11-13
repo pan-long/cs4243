@@ -9,6 +9,9 @@ from matplotlib import pyplot as plt
 import meanShift
 import savePoint
 import csv
+import sys
+
+sys.setrecursionlimit(1000000)
 
 videos_path = 'videos/'
 videos = ['football_left.mp4', 'football_mid.mp4', 'football_right.mp4']
