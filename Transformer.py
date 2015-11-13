@@ -82,7 +82,11 @@ def main():
     for f in files:
         file_readers.append(open('track/' + f + '_smoothed.txt'))
 
-    prev_x_position = []
+    dist = []
+    speed = []
+    prev_player_pt = []
+    prev_player_dist = []
+    curr_player_dist = []
     open('track/off_site.txt', 'w').close()
     for i in range(frame_size):
         print('===================== process frame: ',  i, ' ===========================')
@@ -92,34 +96,49 @@ def main():
         move_direction = 0
         field = np.array(football_field, np.uint8)
 
-        for i in range(len(file_readers)):
-            reader = file_readers[i]
+        for j in range(len(file_readers)):
+            reader = file_readers[j]
             line = reader.readline().split(',')
             point = (int(line[0]), int(line[1]))
             font = cv2.FONT_HERSHEY_SIMPLEX
             
             # update movement direction
-            if len(prev_x_position) > i:
-                move_direction += (point[0] - prev_x_position[i])
-                prev_x_position[i] = point[0]
+            if len(prev_player_pt) > j:
+                move_direction += (point[0] - prev_player_pt[j][0])
+                curr_player_dist[j] += getDist(prev_player_pt[j], point)
+                prev_player_pt[j] = point
             else:
-                prev_x_position.append(point[0])
+                prev_player_pt.append(point)
+                curr_player_dist.append(0)
+                prev_player_dist.append(0)
+                dist.append(0)
+                speed.append(0)
 
-            if files[i] == "RE":
-                cv2.putText(field, files[i], (point[0]-20, point[1]), font, 1, (0, 0, 0), 2, cv2.CV_AA)
-            elif files[i][0] == "B":
-                if files[i] != "B0":
+            color = (0, 0, 0)
+            if files[j] == "RE":
+               color = (0, 0, 0)
+            elif files[j][0] == "B":
+                if files[j] != "B0":
                     blue_player_x.append(point[0])
-                cv2.putText(field, files[i], (point[0]-20, point[1]), font, 1, (255, 0, 0), 2, cv2.CV_AA)
+                color = (255, 0, 0)
             else:
-                if files[i] != "R0":
+                if files[j] != "R0":
                     red_player_x.append(point[0])
-                cv2.putText(field, files[i], (point[0]-20, point[1]), font, 1, (0, 0, 255), 2, cv2.CV_AA)
-        
+                color = (0, 0, 255)
+            
+            # update dist and speed every 24 frames
+            if i % 24 == 0:
+                dist[j] = curr_player_dist[j]
+                speed[j]= curr_player_dist[j] - prev_player_dist[j] 
+                prev_player_dist[j] = curr_player_dist[j]
+                
+            text = '({p},{d}m,{s}m/s)'.format(p=files[j], d=format(dist[j], '.2f'), s=format(speed[j], '.2f'))
+            cv2.circle(field, point, 20, color, -1)
+            cv2.putText(field, text, (point[0]-150, point[1]-40), font, 1, color, 2, cv2.CV_AA)
+
         # draw off-site line
         blue_max_x = np.amax(blue_player_x)
         red_min_x = np.amin(red_player_x)
-        print move_direction
         if move_direction > speed_threshold:
             top_point = (blue_max_x, 0)
             bottom_point = (blue_max_x, maxHeight)
@@ -143,11 +162,16 @@ def main():
             reverse_bottom = transformer.reverse(bottom_point)
             writer.writerow([reverse_top[0], reverse_top[1], reverse_bottom[0], reverse_bottom[1]])
 
-        cv2.imshow('result', field)
-        cv2.waitKey(1)
+        # cv2.imshow('result', field)
+        # cv2.waitKey(1)
         
-        # video_out.write(field)
+        video_out.write(field)
 
+def getDist(prevPoint, currPoint):
+    distance = np.sqrt((currPoint[0] - prevPoint[0]) ** 2 + (currPoint[1] - prevPoint[1]) ** 2)
+    actual_distance = distance / maxWidth * 110
+
+    return actual_distance
 
 if __name__ == '__main__':
     main()
