@@ -4,3 +4,4 @@
 *.jpg
 !*background*.jpg
 *.pyc
+*.csv
