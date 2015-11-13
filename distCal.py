@@ -1,10 +1,9 @@
-import cv2
 import numpy as np
 
 
 class distCal (object):
     """
-    Extract the background by averaging all the frames.
+    Calculate players' running distance
     """
 
     def __init__(self):
