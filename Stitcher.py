@@ -15,10 +15,10 @@ class Stitcher(object):
     # detector = cv2.SIFT()
 
     # Use Flann Matcher.
-    FLANN_INDEX_KDTREE = 1  # bug: flann enums are missing
-    flann_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
-    matcher = cv2.FlannBasedMatcher(flann_params, {})
-    count_for_best_matches_in_knn = 2
+    # FLANN_INDEX_KDTREE = 1  # bug: flann enums are missing
+    # flann_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
+    # matcher = cv2.FlannBasedMatcher(flann_params, {})
+    # count_for_best_matches_in_knn = 2
 
     # Size of the Gaussian kernel used in Gaussian blurring process.
     Gaussian_ksize = (5, 5)

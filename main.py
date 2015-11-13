@@ -42,16 +42,6 @@ def crop_img(img):
     # TODO: Detect the black area and crop smartly.
     return img[crop_image_rect['min_y']:crop_image_rect['max_y'], crop_image_rect['min_x']: crop_image_rect['max_x']]
 
-def minPoint(points):
-    min = 3000 ** 2 * 2
-    for i in range(len(points)):
-        dist = (points[i][0] - prev[0]) ** 2 + (points[i][1] - prev[1]) ** 2
-        if dist < min:
-            min = dist
-            minPt = points[i]
-
-    return minPt
-
 # def testDictionary(test_dict):
 #     test_dict["{r}_{c}".format(r = 2, c = 2)] = 1
 #     return
@@ -78,12 +68,12 @@ def main():
     # # print r, " ", c
     # raise ValueError("temp stop")
     stitcher = Stitcher()
-    if config_scale:
-        background = cv2.imread('background_scaled.jpg')
-    else:
-        background = cv2.imread('background.jpg')
-    background_ext = cv2.BackgroundSubtractorMOG2()
-    background_ext.apply(background)
+    # if config_scale:
+    #     background = cv2.imread('background_scaled.jpg')
+    # else:
+    #     background = cv2.imread('background.jpg')
+    # background_ext = cv2.BackgroundSubtractorMOG2()
+    # background_ext.apply(background)
 
     transformer = Transformer(config_scale)
 
