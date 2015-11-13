@@ -32,6 +32,10 @@ class meanShiftTracker(object):
 
    dilation_kernel = np.ones((2,2), np.uint8)
 
+   MAX_ROW_INDEX = 250
+   MAX_COL_INDEX = 2100
+
+
    def initFromFirstFrame(self, frame):
       print '====================== MeanShift: init frame ==================================='
       # set up the ROI for tracking
@@ -101,6 +105,7 @@ class meanShiftTracker(object):
       return c+w/2, r+h/2
 
    def findConnectedComponentWithinROI(self, cur_roi_img, full_img, r_start, r_end, c_start, c_end):
+
       return
 
    def searchConnectedNeighbours(self,full_img, cur_r, cur_c, memorization):
@@ -117,7 +122,7 @@ class meanShiftTracker(object):
             #    not (i == cur_r + 1 and j == cur_c + 1) and \
             #    not (i == cur_r + 1 and j == cur_c - 1)):
                # i, j has intensity greater than black and i, j is not checked
-               if(full_img[i][j] > self.white_region_thresh and (not "{r}_{c}".format(r = i, c = j) in memorization)):
+               if(i < self.MAX_ROW_INDEX and j < self.MAX_COL_INDEX and full_img[i][j] > self.white_region_thresh and (not "{r}_{c}".format(r = i, c = j) in memorization)):
                   self.searchConnectedNeighbours(full_img, i, j, memorization)
 
    # r_start, r_end, c_start, c_end are all inclusive
@@ -305,13 +310,13 @@ class meanShiftTracker(object):
       dst = cv2.calcBackProject([hsv], [0], self.roi_hist, [0,180], 1)
       # dst = cv2.dilate(dst, self.dilation_kernel, iterations = 1)
       cv2.imshow("calcBackProject", dst)
-      cv2.waitKey(0)
+      cv2.waitKey(3)
 
       neighbourhood_size = 0
       # track_window: (col,row,width,height)
       dst_cutted = dst[self.track_window[1] - neighbourhood_size:self.track_window[1] + self.track_window[3] + neighbourhood_size, self.track_window[0] - neighbourhood_size :self.track_window[0] + self.track_window[2] + neighbourhood_size]
       cv2.imshow("dst_cutted before expansion", dst_cutted)
-      cv2.waitKey(0)     
+      cv2.waitKey(3)     
 
   
 
@@ -320,12 +325,12 @@ class meanShiftTracker(object):
       dst_cutted, r_top, r_bottom, c_left, c_right = self.expandSearchAreaConnectedComponentAndSuppress(dst_cutted, dst, self.track_window[1] - neighbourhood_size, self.track_window[1] + self.track_window[3] + neighbourhood_size - 1, self.track_window[0] - neighbourhood_size, self.track_window[0] + self.track_window[2] + neighbourhood_size - 1)
       print "dst_cutted.shape after expansion:", dst_cutted.shape
       cv2.imshow("dst_cutted after expansion", dst_cutted)
-      cv2.waitKey(0)
+      cv2.waitKey(3)
 
       dst_cutted, r_top, r_bottom, c_left, c_right = self.shrinkSearchArea(dst_cutted, dst, r_top, r_bottom, c_left, c_right)
       print "dst_cutted.shape after shrink:", dst_cutted.shape
       cv2.imshow("dst_cutted after shrink", dst_cutted)
-      cv2.waitKey(0)   
+      cv2.waitKey(3)   
 
       # col_offset = self.track_window[0] - neighbourhood_size
       # row_offset = self.track_window[1] - neighbourhood_size
@@ -352,7 +357,7 @@ class meanShiftTracker(object):
 
       dst_cutted_after_cam_shift = dst[self.track_window[1]:self.track_window[1] + self.track_window[3], self.track_window[0]:self.track_window[0] + self.track_window[2]]
       cv2.imshow("dst_cutted_after_cam_shift", dst_cutted_after_cam_shift)
-      cv2.waitKey(0)
+      cv2.waitKey(3)
 
       """
       shrink after Camshift, not needed
@@ -376,7 +381,7 @@ class meanShiftTracker(object):
       x, y, w, h = self.track_window
       cv2.rectangle(frame, (x,y), (x+w ,y+h), 255, 1)
       cv2.imshow('img2', frame)
-      cv2.waitKey(0)
+      cv2.waitKey(3)
 
       # k = cv2.waitKey(60) & 0xff
       # if k == 27:
