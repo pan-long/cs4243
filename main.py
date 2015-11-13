@@ -47,38 +47,9 @@ def crop_img(img):
     # TODO: Detect the black area and crop smartly.
     return img[crop_image_rect['min_y']:crop_image_rect['max_y'], crop_image_rect['min_x']: crop_image_rect['max_x']]
 
-# def testDictionary(test_dict):
-#     test_dict["{r}_{c}".format(r = 2, c = 2)] = 1
-#     return
 
 def main():
-    ### test ###
-    # test_dict = {}
-    # print not "{r}_{c}".format(r = 1, c = 2) in test_dict
-    # test_dict["{r}_{c}".format(r = 1, c = 2)] = 1
-    # print "test_dict before pass in:", test_dict
-    # testDictionary(test_dict)
-    # print "test_dict after pass in:", test_dict
-    # temp = np.ones ((10,10))
-    # temp_cutted = np.copy(temp[3:6, 3:6])
-    # for i in range(0, temp_cutted.shape[0]):
-    #     for j in range(0, temp_cutted.shape[1]):
-    #         temp_cutted[i][j] = 100
-    # print temp
-    # # temp = "{r}_{c}".format(r = 1, c = 2)
-    # # chars = temp.split("_")
-    # # r = int(chars[0])
-    # # c = int(chars[1])
-    # # print chars
-    # # print r, " ", c
-    # raise ValueError("temp stop")
     stitcher = Stitcher()
-    # if config_scale:
-    #     background = cv2.imread('background_scaled.jpg')
-    # else:
-    #     background = cv2.imread('background.jpg')
-    # background_ext = cv2.BackgroundSubtractorMOG2()
-    # background_ext.apply(background)
 
     transformer = Transformer(config_scale)
 
@@ -99,15 +70,11 @@ def main():
     with open(player_filename, 'w') as csvfile:
         writer = csv.writer(csvfile, delimiter=',',)
 
-    # point = [123, 1156]
-    # tracker = Tracker(config_scale, point)
-
-    # fourcc = cv2.cv.CV_FOURCC('m', 'p', '4', 'v') # note the lower case
-    # video_out = cv2.VideoWriter('out_put_mean_shift.mp4',fourcc, 24.0, (2100,250), True)
+    fourcc = cv2.cv.CV_FOURCC('m', 'p', '4', 'v') # note the lower case
+    video_out = cv2.VideoWriter('track_one_red_player.mp4',fourcc, 24.0, (2100,250), True)
 
     mean_shift_tracker = meanShift.meanShiftTracker()
     fr = 0
-    # for fr in range(frame_count):
     while(fr < frame_count):
         print(fr)
         
@@ -129,51 +96,20 @@ def main():
             # plt.imshow(np.dstack((warped_left_mid_right_cropped[:,:,2], warped_left_mid_right_cropped[:,:,1], warped_left_mid_right_cropped[:,:,0])))
             # plt.show()
             # break;
-            # background = background_ext.apply(warped_left_mid_right_cropped)
-
-            # if(fr == 7190):
-                # plt.imshow(warped_left_mid_right_cropped)
-                # plt.show()
-                # break
 
             if fr == 0:
                 mean_shift_tracker.initFromFirstFrame(warped_left_mid_right_cropped)
-                # set fr to 800 after initialize to speed up test
-                # fr = 1500
-                # mean_shift_tracker.setTrack_window((984,76,5,11)) # set frame number for fr 800
-                # mean_shift_tracker.setTrack_window((940,81,5,11)) # set frame number for fr 1200
-                # mean_shift_tracker.setTrack_window((927,64,5,11)) # set frame number for fr 1500
-                # mean_shift_tracker.setTrack_window((702,60,5,11)) # set frame number for fr 7100
-                # cap_left.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
-                # cap_mid.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
-                # cap_right.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
                 fr += 1
             else:
                 mean_shift_frame, mean_shift_point = mean_shift_tracker.trackOneFrame(warped_left_mid_right_cropped)
                 savePoint.saveOnePlayerPoint(player_name, mean_shift_point, fr)
                 cv2.imshow('football', mean_shift_frame)
                 cv2.waitKey(1)
-                # video_out.write(mean_shift_frame)
+                video_out.write(mean_shift_frame)
                 fr += 1
             
         else:
             fr += 1
-            # point = tracker.tracking(background)
-            
-            # for pt in points:
-            # global prev
-            # if len(prev) == 0:
-            #     prev = points[4]
-            # pt = minPoint(points)
-            # cv2.circle(warped_left_mid_right_cropped, (point[1], point[0]), 3, (0, 0, 255), -1)
-            # cv2.imshow('Objects', warped_left_mid_right_cropped)
-            # cv2.waitKey(1)
-
-            # background = transformer.transform(points)
-            # plt.imshow(warped_left_mid_right_cropped)
-            # plt.show()
-            # cv2.imshow('Objects', background)
-            # cv2.waitKey(30)
 
     cv2.waitKey(0)
     cv2.destroyAllWindows()
