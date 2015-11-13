@@ -10,7 +10,8 @@ class meanShiftTracker(object):
     # setup initial location of window
     # r,h,c,w = 123-10,5,1156-4,5  # simply hardcoded the values
     # r,h,c,w = 50,4,1117,2 # temporarily work for Camshift
-    r, h, c, w = 50, 5, 1117, 2
+    # r, h, c, w = 50, 5, 1117, 2 # for red player
+    r, h, c, w = 68, 6, 1033, 2 # for blue player
 
     # r,h,c,w = 110, 2, 1153, 2
     track_window = (c, r, w, h)
