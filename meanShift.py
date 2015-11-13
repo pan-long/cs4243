@@ -10,7 +10,11 @@ class meanShiftTracker(object):
     # setup initial location of window
     # r,h,c,w = 123-10,5,1156-4,5  # simply hardcoded the values
     # r,h,c,w = 50,4,1117,2 # temporarily work for Camshift
-    r, h, c, w = 50, 5, 1117, 2
+    # r, h, c, w = 50, 5, 1117, 2 # for red player
+    # r, h, c, w = 69, 5, 759, 2 # for white goalkeeper, R0
+    # r, h, c, w = 73, 2, 759, 2 # for white goalkeeper, R0, better
+    # r, h, c, w = 67, 3, 1411, 2 # for green goalkeeper, B0
+    r, h, c, w = 60, 3, 1153, 3 # for referee, REFEREE
 
     # r,h,c,w = 110, 2, 1153, 2
     track_window = (c, r, w, h)
@@ -43,19 +47,21 @@ class meanShiftTracker(object):
             print(x, y)
             # x = 2 * x
             # y = 2 * y
-            self.setTrack_window((x - 2, y - 5, 4, 10))
+            self.setTrack_window((x - 2, y - 3, 4, 6))
             self.manual_tracking = True
 
     def initFromFirstFrame(self, frame):
         print '====================== MeanShift: init frame ==================================='
         # set up the ROI for tracking
         roi = frame[self.r: self.r + self.h, self.c: self.c + self.w]
-        # cv2.imshow("roi",roi)
-        # cv2.waitKey(0)
+        cv2.imshow("roi",roi)
+        cv2.waitKey(0)
 
         hsv_roi = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
-        mask = cv2.inRange(hsv_roi, np.array((0., 0., 0.)), np.array((180., 255., 255.)))
+        # hsv_roi[:,:,0] = hsv_roi[:,:,0] * (hsv_roi[:,:,1]/255.0) # use Hue * Saturation
+        mask = cv2.inRange(hsv_roi, np.array((0., 0., 200.)), np.array((180., 255., 255.)))
         roi_hist = cv2.calcHist([hsv_roi], [0], mask, [180], [0, 180])
+        # roi_hist = cv2.calcHist([hsv_roi], [0, 2], mask, [180, 256], [0, 180, 0, 256]) # for 2D HS case
         cv2.normalize(roi_hist, roi_hist, 0, 255, cv2.NORM_MINMAX)
 
         self.roi = roi
@@ -323,13 +329,16 @@ class meanShiftTracker(object):
         # compensate_r = self.track_window[1] - 10
         # print hsv.shape
         # print self.roi_hist.shape
-
+        
+        # hsv[:,:,0] = hsv[:,:,0] * (hsv[:,:,1]/255.0) # use Hue * Saturation
         dst = cv2.calcBackProject([hsv], [0], self.roi_hist, [0, 180], 1)
+
+        # dst = cv2.calcBackProject([hsv], [0,2], self.roi_hist, [0, 180, 0, 256], 1) # for 2D HS case
         dst = cv2.dilate(dst, self.dilation_kernel, iterations=1)
         # cv2.imshow("calcBackProject", dst)
         # cv2.waitKey(0)
 
-        neighbourhood_size = 0
+        neighbourhood_size = 1
         # track_window: (col,row,width,height)
         dst_cutted = dst[self.track_window[1] - neighbourhood_size:self.track_window[1] + self.track_window[
             3] + neighbourhood_size, self.track_window[0] - neighbourhood_size:self.track_window[0] + self.track_window[
@@ -341,27 +350,41 @@ class meanShiftTracker(object):
 
         # Should be doing expansion first then shrink!!!
         # dst_cutted, r_top, r_bottom, c_left, c_right = self.adjustSearchArea(dst_cutted, dst, self.track_window[1] - neighbourhood_size, self.track_window[1] + self.track_window[3] + neighbourhood_size - 1, self.track_window[0] - neighbourhood_size, self.track_window[0] + self.track_window[2] + neighbourhood_size - 1)
-        dst_cutted, r_top, r_bottom, c_left, c_right = self.expandSearchAreaConnectedComponentAndSuppress(dst_cutted,
-                                                                                                          dst,
-                                                                                                          self.track_window[
-                                                                                                              1] - neighbourhood_size,
-                                                                                                          self.track_window[
-                                                                                                              1] +
-                                                                                                          self.track_window[
-                                                                                                              3] + neighbourhood_size - 1,
-                                                                                                          self.track_window[
-                                                                                                              0] - neighbourhood_size,
-                                                                                                          self.track_window[
-                                                                                                              0] +
-                                                                                                          self.track_window[
-                                                                                                              2] + neighbourhood_size - 1)
+        # dst_cutted, r_top, r_bottom, c_left, c_right = self.expandSearchAreaConnectedComponentAndSuppress(dst_cutted,
+        #                                                                                                   dst,
+        #                                                                                                   self.track_window[
+        #                                                                                                       1] - neighbourhood_size,
+        #                                                                                                   self.track_window[
+        #                                                                                                       1] +
+        #                                                                                                   self.track_window[
+        #                                                                                                       3] + neighbourhood_size - 1,
+        #                                                                                                   self.track_window[
+        #                                                                                                       0] - neighbourhood_size,
+        #                                                                                                   self.track_window[
+        #                                                                                                       0] +
+        #                                                                                                   self.track_window[
+        #                                                                                                       2] + neighbourhood_size - 1)
         # print "dst_cutted.shape after expansion:", dst_cutted.shape
         # cv2.imshow("dst_cutted after expansion", dst_cutted)
         # cv2.waitKey(0)
 
         orig_dst_cutted = dst_cutted
-        dst_cutted, r_top, r_bottom, c_left, c_right = self.shrinkSearchArea(dst_cutted, dst, r_top, r_bottom, c_left,
-                                                                             c_right)
+        # dst_cutted, r_top, r_bottom, c_left, c_right = self.shrinkSearchArea(dst_cutted, dst, r_top, r_bottom, c_left,
+        #                                                                      c_right)
+        dst_cutted, r_top, r_bottom, c_left, c_right = self.shrinkSearchArea(dst_cutted,
+                                                                              dst,
+                                                                              self.track_window[
+                                                                              1] - neighbourhood_size,
+                                                                              self.track_window[
+                                                                              1] +
+                                                                              self.track_window[
+                                                                              3] + neighbourhood_size - 1,
+                                                                              self.track_window[
+                                                                              0] - neighbourhood_size,
+                                                                              self.track_window[
+                                                                              0] +
+                                                                              self.track_window[
+                                                                              2] + neighbourhood_size - 1)
         if not len(dst_cutted):
             dst_cutted = orig_dst_cutted
         # print "dst_cutted.shape after shrink:", dst_cutted.shape

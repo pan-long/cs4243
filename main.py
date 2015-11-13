@@ -93,7 +93,7 @@ def main():
     frame_count_right = int(cap_right.get(cv.CV_CAP_PROP_FRAME_COUNT))
     frame_count = np.min([frame_count_left, frame_count_mid, frame_count_right])
 
-    player_name = 'R1'
+    player_name = 'REFEREE'
     # clear previous file
     player_filename = "player_{id}_points.csv".format(id = player_name)
     with open(player_filename, 'w') as csvfile:
@@ -120,7 +120,7 @@ def main():
             frame_left = cv2.resize(frame_left, scaled_size)
             frame_mid = cv2.resize(frame_mid, scaled_size)
             frame_right = cv2.resize(frame_right, scaled_size)
-            frame_mid = cv2.convertScaleAbs(frame_mid, alpha=0.92)
+            # frame_mid = cv2.convertScaleAbs(frame_mid, alpha=0.92)
 
             warped_left_mid = stitcher.stitch(frame_mid, frame_left, H_left_mid)
             warped_left_mid_right = stitcher.stitch(warped_left_mid, frame_right, H_mid_right)
@@ -131,8 +131,8 @@ def main():
             # break;
             # background = background_ext.apply(warped_left_mid_right_cropped)
 
-            # if(fr == 7190):
-                # plt.imshow(warped_left_mid_right_cropped)
+            # if(fr == 3600):
+                # plt.imshow(np.dstack((warped_left_mid_right_cropped[:,:,2], warped_left_mid_right_cropped[:,:,1], warped_left_mid_right_cropped[:,:,0])))
                 # plt.show()
                 # break
 
