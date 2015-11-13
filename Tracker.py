@@ -1,94 +1,126 @@
 from cv2 import cv
 from functools import partial
+from CamShift import camShiftTracker
 
 import cv2
 import numpy as np
 
 
 class Tracker(object):
-    area_threshold = 15
-    height_threshold = 5
-    width_threshold = 3
+    area_threshold = 10
+    dist_threshold = 20
 
     box_delta_y_up = 20
     box_delta_y_down = 5
-    box_delta_x_left = 10
-    box_delta_x_right = 10
+    box_delta_x_left = 20
+    box_delta_x_right = 20
 
-    mask_scaled = ((2, 234), (2094, 225), (1273, 40), (698, 40))
-    mask = ((26, 949), (8398, 893), (5177, 139), (2881, 153))
+    def __init__(self, background, is_scaled, points):
+        self.centers = []
+        self.points = points
+        self.velocities = [[0, 0] for i in range(len(points))]
+        self.background = background
 
-    def __init__(self, is_scaled, init_point):
-        self.init_point = init_point
-        self.current_point = init_point
-        if is_scaled:
-            self.mask_points = self.mask_scaled
-        else:
-            self.mask_points = self.mask
+        self.camshift_tracker = {}
 
     def tracking(self, img):
-        # lower_left, lower_right, upper_right, upper_left = self.mask_points
-        # height, width = img.shape[:2]
+        # make close points to use camshift tracker
+        # for i in range(len(self.points)):
+        #     point = self.points[i]
+        #
+        #     for j in range(i+1, len(self.points)):
+        #         tmp = self.points[j]
+        #
+        #         if (i not in self.camshift_tracker) and self.__distance(point, tmp) < self.dist_threshold:
+        #             camshift_tracker1 = camShiftTracker(point[0], point[1])
+        #             camshift_tracker1.initFromFirstFrame(img)
+        #             self.camshift_tracker[i] = camshift_tracker1
+        #
+        #             camshift_tracker2 = camShiftTracker(tmp[0], tmp[1])
+        #             camshift_tracker2.initFromFirstFrame(img)
+        #             self.camshift_tracker[j] = camshift_tracker2
 
-        # Filter out the pixels outside of the field.
-        # for i in range(height):
-        #     for j in range(width):
-        #         if i < upper_right[1] or i > lower_right[1]:
-        #             img[i, j] = 0
-        #         else:
-        #             x_left_boundary = upper_left[0] - float(i - upper_left[1]) / (lower_left[1] - upper_left[1]) * \
-        #                                               (upper_left[0] - lower_left[0])
-        #             x_right_boundary = upper_right[0] + float(i - upper_right[1]) / (lower_right[1] - upper_right[1]) * \
-        #                                                 (lower_right[0] - upper_right[0])
-        #             if j < x_left_boundary or j > x_right_boundary:
-        #                 img[i, j] = 0
+
+        # tracking points
+        for i in range(len(self.points)):
+            if i not in self.camshift_tracker:
+                self.points[i] = self.trackingPoint(img, i)
+            else:
+                self.points[i] = self.camshift_tracker[i].trackFrame(img)
+
+
+        # after tracker, move far points from using camshift tracker
+        shouldRemove = []
+        for i in self.camshift_tracker:
+            for j in self.camshift_tracker:
+                if i != j and self.__distance(self.points[i], self.points[j]) > self.dist_threshold:
+                    shouldRemove.append(i)
+                    break
+
+        for i in shouldRemove:
+            del self.camshift_tracker[i]
+
+        return  self.points
+
+    def trackingPoint(self, img, idx):
+        current_point = self.points[idx]
+        current_velocity = self.velocities[idx]
 
         # Get a local tracking image
-        sub_img = img[self.current_point[0] - self.box_delta_y_up: self.current_point[0] + self.box_delta_y_down,
-                  self.current_point[1] - self.box_delta_x_left: self.current_point[1] + self.box_delta_x_right]
+        sub_background = self.background[
+                         current_point[0] - self.box_delta_y_up: current_point[0] + self.box_delta_y_down,
+                         current_point[1] - self.box_delta_x_left: current_point[1] + self.box_delta_x_right]
+        sub_img_orig = img[current_point[0] - self.box_delta_y_up: current_point[0] + self.box_delta_y_down,
+                        current_point[1] - self.box_delta_x_left: current_point[1] + self.box_delta_x_right]
+
+        background_ext = cv2.BackgroundSubtractorMOG2()
+        background_ext.apply(sub_background)
+        sub_img = background_ext.apply(sub_img_orig)
 
         # Remove noise and shadows
         _, img_thresholded = cv2.threshold(sub_img, 200, 255, cv.CV_THRESH_BINARY)
 
         contours, _ = cv2.findContours(img_thresholded, cv.CV_RETR_EXTERNAL, cv.CV_CHAIN_APPROX_SIMPLE)
-        # img_thresholded = np.zeros((height, width, 3), np.uint8)
         filtered_contours = [];
         for contour in contours:
-            # if np.abs(np.amin(contour, axis=0)[0][1] - upper_left[1]) <= 1. / 3 * (lower_left[1] - upper_left[1]):
-            #     area_threshold = self.area_threshold / 2.5
-            # else:
-            #     area_threshold = self.area_threshold
-            if cv2.contourArea(contour) >= self.area_threshold and \
-                                    np.amax(contour, axis=0)[0][0] - np.amin(contour, axis=0)[0][
-                                0] >= self.width_threshold and \
-                                    np.amax(contour, axis=0)[0][1] - np.amin(contour, axis=0)[0][
-                                1] >= self.height_threshold:
+            if cv2.contourArea(contour) >= self.area_threshold:
                 filtered_contours.append(contour)
-        # cv2.drawContours(img_thresholded, filtered_contours, -1, (255, 255, 255), -1)
 
-        # print(len(filtered_contours))
+        down_right_bounds = np.array(map(partial(np.amax, axis=0), filtered_contours), np.int)
+        up_left_bounds = np.array(map(partial(np.amin, axis=0), filtered_contours), np.int)
+        centers = np.array(map(partial(np.mean, axis=0), zip(down_right_bounds, up_left_bounds)), np.int)
 
-        centers = map(partial(np.amax, axis=0), filtered_contours)
-        feet_points = map(partial(np.mean, axis=0), filtered_contours)
+        tracking_points = []
+        for f, c in zip(down_right_bounds, centers):
+            tracking_points.append([f[0][1], c[0][0]])
 
-        tracking_points = np.array(
-            [(center[0][1], feet_point[0][0]) for center, feet_point in zip(centers, feet_points)], np.uint)
+        if len(tracking_points) == 0:
+            # tracking_points = np.array(
+            #     [(c[0][1], c[0][0]) for c in center], np.int)
+            tracking_points.append([self.box_delta_y_up + self.velocities[idx][0], self.box_delta_x_left + self.velocities[idx][1]])
+        else:
+            tracking_points = np.array(tracking_points, np.int)
 
         if len(tracking_points) >= 1:
             point = self.__minPoint(tracking_points)
-            point[0] = self.current_point[0] + point[0] - self.box_delta_y_up
-            point[1] = self.current_point[1] + point[1] - self.box_delta_x_left
-            self.current_point = point
+            point[0] = current_point[0] + point[0] - self.box_delta_y_up
+            point[1] = current_point[1] + point[1] - self.box_delta_x_left
+            self.velocities[idx][0] = point[0] - current_point[0]
+            self.velocities[idx][1] = point[1] - current_point[1]
 
-        return self.current_point
+        return point
 
     def __minPoint(self, points):
         min = self.box_delta_y_up ** 2 + self.box_delta_x_left ** 2
         minPt = []
         for i in range(len(points)):
-            dist = (int(points[i][0]) - self.box_delta_y_up) ** 2 + (int(points[i][1]) - self.box_delta_x_left) ** 2
+            dist = self.__distance(points[i], [self.box_delta_y_up, self.box_delta_x_left])
+            # dist = (int(points[i][0]) - self.box_delta_y_up) ** 2 + (int(points[i][1]) - self.box_delta_x_left) ** 2
             if dist < min:
                 min = dist
                 minPt = points[i]
 
         return minPt
+
+    def __distance(self, p1, p2):
+        return (int(p1[0]) - p2[0]) ** 2 + (int(p1[1]) - p2[1]) ** 2

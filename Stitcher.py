@@ -1,5 +1,6 @@
-import cv2
 import math
+
+import cv2
 import numpy as np
 import numpy.linalg as la
 
@@ -99,8 +100,8 @@ class Stitcher(object):
         :return: The 3x3 homography matrix.
         """
         # Convert the base_img to grayscale
-        base_img_grayscale = cv2.GaussianBlur(cv2.cvtColor(base_img, cv2.COLOR_BGR2GRAY), 
-                                                self.Gaussian_ksize, 0)
+        base_img_grayscale = cv2.GaussianBlur(cv2.cvtColor(base_img, cv2.COLOR_BGR2GRAY),
+                                              self.Gaussian_ksize, 0)
 
         # Convert the img_to_stitch to grayscale.
         img_to_match_grayscale = cv2.GaussianBlur(cv2.cvtColor(img_to_match, cv2.COLOR_BGR2GRAY),
@@ -109,7 +110,6 @@ class Stitcher(object):
         # Detect and compute the features in 2 images.
         img_to_match_features, img_to_match_descs = self.detector.detectAndCompute(img_to_match_grayscale, None)
         base_img_features, base_img_descs = self.detector.detectAndCompute(base_img_grayscale, None)
-
 
         # Match the features in 2 images.
         matches = self.matcher.knnMatch(img_to_match_descs, trainDescriptors=base_img_descs,
@@ -133,9 +133,8 @@ class Stitcher(object):
                                        self.ransac_reprojection_threshold)
         return H
 
-
     def gaussian_pyramid(self, img):
-        G  = img.copy()
+        G = img.copy()
         gp = [G]
 
         for i in xrange(3):
@@ -144,7 +143,6 @@ class Stitcher(object):
 
         return gp
 
-
     def laplacian_pyramid(self, img):
         gp = self.gaussian_pyramid(img)
         lp = [gp[2]]
@@ -152,15 +150,14 @@ class Stitcher(object):
         for i in xrange(2, 0, -1):
             GE = cv2.pyrUp(gp[i])
             # print gp[i-1].shape, GE.shape
-            L = cv2.subtract(gp[i-1], GE)
+            L = cv2.subtract(gp[i - 1], GE)
             lp.append(L)
 
         return lp
 
-
     def img_blending(self, left, right):
         LS = []
-        
+
         left_rows, left_cols, left_dept = left.shape
         right_rows, right_cols, right_dept = left.shape
 
@@ -176,12 +173,11 @@ class Stitcher(object):
         LA = self.laplacian_pyramid(left[0:min_rows, 0:min_cols])
         LB = self.laplacian_pyramid(right[0:min_rows, 0:min_cols])
         for la, lb in zip(LA, LB):
-            rows,cols,dpt = la.shape
+            rows, cols, dpt = la.shape
             ls = la + lb
             LS.append(ls)
 
         return LS
-
 
     def stitch(self, base_img, img_to_stitch, homography=None):
         """
@@ -234,13 +230,6 @@ class Stitcher(object):
                                     mask=np.bitwise_not(data_map),
                                     dtype=cv2.CV_8U)
 
-        # Now add the warped image.
-        # LS = img_blending(img_to_stitch_warp, enlarged_base_img)
-        # final_img = LS[0]
-        # for i in xrange(1,4):
-        #     final_img = cv2.pyrUp(final_img)
-        #     final_img = cv2.add(final_img, LS[i])
-        
         final_img = cv2.add(enlarged_base_img, img_to_stitch_warp,
                             dtype=cv2.CV_8U)
 

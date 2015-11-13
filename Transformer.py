@@ -4,12 +4,10 @@ import cv2.cv as cv
 from functools import partial
 from matplotlib import pyplot as plt
 
-
-football_field = cv2.imread('football_field.png')
+football_field = cv2.imread('images/football_field.png')
 maxHeight, maxWidth = football_field.shape[:2]
 mask = np.float32([[2881, 153], [5177, 139], [8398, 893], [26, 949]])
 mask_scaled = np.float32([[698, 40], [1273, 40], [2094, 225], [2, 234]])
-
 
 class Transformer():
 	def __init__(self, is_scaled):
@@ -28,11 +26,7 @@ class Transformer():
 		return (x, y)
 
 	def initMarker(self, points):
-		# for mannually mark players
-		# for i in range(len(points)):
-		# 	print points[i]
-
-		# before warp
+		# positions before warp
 		self.marker_map = { 'C0': (71, 1153), \
 							'R0': (80, 761), 'R1': (80, 1033), 'R2': (95, 1127), 'R3': (54, 1156), 'R4': (65, 1185), 'R5': (61, 1204), 'R6': (56, 1217), 'R7': (69, 1213), 'R8': (67, 1253), 'R9': (75, 1281), 'R10': (92, 1347), \
 							'B0': (71, 1409), 'B1': (72, 2016), 'B2': (47, 1051), 'B3': (58, 1117), 'B4': (74, 1139), 'B5': (123, 1156), 'B6': (61, 1177), 'B7': (48, 1198), 'R8': (102, 1353)}
@@ -57,16 +51,6 @@ class Transformer():
 		field = np.array(football_field)
 		(tl, tr, br, bl) = self.mask_points
 
-		# width of new image
-		# widthA = np.sqrt(((br[0] - bl[0]) ** 2) + ((br[1] - bl[1]) ** 2))
-		# widthB = np.sqrt(((tr[0] - tl[0]) ** 2) + ((tr[1] - tl[1]) ** 2))
-		# maxWidth = max(int(widthA), int(widthB))
-
-		# height of new image
-		# heightA = np.sqrt(((tr[0] - br[0]) ** 2) + ((tr[1] - br[1]) ** 2))
-		# heightB = np.sqrt(((tl[0] - bl[0]) ** 2) + ((tl[1] - bl[1]) ** 2))
-		# maxHeight = max(int(heightA), int(heightB))
-
 		# dimension of new image
 		dst = np.array([
 			[0, 0],
@@ -83,8 +67,8 @@ class Transformer():
 			self.updateMarker(points)
 
 		for m, p in self.marker_map.iteritems():
-			p = self.warpPerspective(M, p)
 			font = cv2.FONT_HERSHEY_SIMPLEX
+			p = self.warpPerspective(M, p)
 			if m[0] == "B":
 				cv2.putText(field, m, p, font, 1, (255, 0, 0), 2, cv2.CV_AA)
 			else:
