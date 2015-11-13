@@ -93,7 +93,10 @@ def main():
 
     frame_width = int(cap_mid.get(cv.CV_CAP_PROP_FRAME_WIDTH))
     frame_height = int(cap_mid.get(cv.CV_CAP_PROP_FRAME_HEIGHT))
-    frame_count = int(cap_mid.get(cv.CV_CAP_PROP_FRAME_COUNT))
+    frame_count_mid = int(cap_mid.get(cv.CV_CAP_PROP_FRAME_COUNT))
+    frame_count_left = int(cap_left.get(cv.CV_CAP_PROP_FRAME_COUNT))
+    frame_count_right = int(cap_right.get(cv.CV_CAP_PROP_FRAME_COUNT))
+    frame_count = np.min([frame_count_left, frame_count_mid, frame_count_right])
 
     point = [123, 1156]
     tracker = Tracker(config_scale, point)
@@ -111,19 +114,17 @@ def main():
         status_mid, frame_mid = cap_mid.read()
         status_right, frame_right = cap_right.read()
 
-        scaled_size = (frame_width / image_down_scale_factor, frame_height / image_down_scale_factor)
-        frame_left = cv2.resize(frame_left, scaled_size)
-        frame_mid = cv2.resize(frame_mid, scaled_size)
-        frame_right = cv2.resize(frame_right, scaled_size)
-
-
         if status_left and status_mid and status_right:
+            scaled_size = (frame_width / image_down_scale_factor, frame_height / image_down_scale_factor)
+            frame_left = cv2.resize(frame_left, scaled_size)
+            frame_mid = cv2.resize(frame_mid, scaled_size)
+            frame_right = cv2.resize(frame_right, scaled_size)
             warped_left_mid = stitcher.stitch(frame_mid, frame_left, H_left_mid)
             warped_left_mid_right = stitcher.stitch(warped_left_mid, frame_right, H_mid_right)
             warped_left_mid_right_cropped = crop_img(warped_left_mid_right)
             background = background_ext.apply(warped_left_mid_right_cropped)
 
-            # if(fr == 1500):
+            # if(fr == 7190):
                 # plt.imshow(warped_left_mid_right_cropped)
                 # plt.show()
                 # break
@@ -135,6 +136,7 @@ def main():
                 # mean_shift_tracker.setTrack_window((984,76,5,11)) # set frame number for fr 800
                 # mean_shift_tracker.setTrack_window((940,81,5,11)) # set frame number for fr 1200
                 mean_shift_tracker.setTrack_window((927,64,5,11)) # set frame number for fr 1500
+                # mean_shift_tracker.setTrack_window((702,60,5,11)) # set frame number for fr 7100
                 cap_left.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
                 cap_mid.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
                 cap_right.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
@@ -142,7 +144,9 @@ def main():
                 mean_shift_frame = mean_shift_tracker.trackOneFrame(warped_left_mid_right_cropped)
                 video_out.write(mean_shift_frame)
                 fr += 1
-
+            
+        else:
+            fr += 1
             # point = tracker.tracking(background)
             
             # for pt in points:

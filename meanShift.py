@@ -330,14 +330,14 @@ class meanShiftTracker(object):
       dst_cutted, r_top, r_bottom, c_left, c_right = self.shrinkSearchArea(dst_cutted, dst, r_top, r_bottom, c_left, c_right)
       # print "dst_cutted.shape after shrink:", dst_cutted.shape
       # cv2.imshow("dst_cutted after shrink", dst_cutted)
-      # cv2.waitKey(0)   
+      # cv2.waitKey(0)
 
       # col_offset = self.track_window[0] - neighbourhood_size
       # row_offset = self.track_window[1] - neighbourhood_size
       col_offset = c_left
       row_offset = r_top
 
-      self.track_window = (c_left, r_top, c_right - c_left + 1, r_bottom - r_top + 1)
+      # self.track_window = (c_left, r_top, c_right - c_left + 1, r_bottom - r_top + 1)
 
       """
       Apply CamShift
@@ -346,7 +346,8 @@ class meanShiftTracker(object):
       # ret, self.track_window = cv2.meanShift(dst, self.track_window, self.term_crit)
       pre_track_window = self.track_window
       # print "before Camshift:", self.track_window
-      ret, self.track_window = cv2.CamShift(dst_cutted, self.track_window, self.term_crit)
+      # ret, self.track_window = cv2.CamShift(dst_cutted, self.track_window, self.term_crit)
+      ret, self.track_window = cv2.CamShift(dst_cutted, (0,0,c_right - c_left + 1, r_bottom - r_top + 1), self.term_crit)
 
       # track_window_img = dst_cutted[self.track_window[1]:self.track_window[1] + self.track_window[3], self.track_window[0]:self.track_window[0] + self.track_window[2]]
       # cv2.imshow("track_window_img after CamShift", track_window_img)
