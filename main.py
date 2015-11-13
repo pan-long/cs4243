@@ -7,6 +7,7 @@ from Tracker import Tracker
 from Transformer import Transformer
 from matplotlib import pyplot as plt
 import meanShift
+import savePoint
 
 videos_path = 'videos/'
 videos = ['football_left.mp4', 'football_mid.mp4', 'football_right.mp4']
@@ -135,7 +136,8 @@ def main():
                 # cap_right.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
                 fr += 1
             else:
-                mean_shift_frame = mean_shift_tracker.trackOneFrame(warped_left_mid_right_cropped)
+                mean_shift_frame, mean_shift_point = mean_shift_tracker.trackOneFrame(warped_left_mid_right_cropped)
+                savePoint.saveOnePlayerPoint("R1", mean_shift_point, fr)
                 cv2.imshow('football', mean_shift_frame)
                 cv2.waitKey(1)
                 # video_out.write(mean_shift_frame)

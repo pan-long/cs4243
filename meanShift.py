@@ -434,4 +434,4 @@ class meanShiftTracker(object):
         # else:
         #    cv2.imwrite(chr(k)+".jpg",img2)
 
-        return frame
+        return frame, [y+h, x + w/2] # return point's as [r, c]
