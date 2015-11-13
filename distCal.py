@@ -17,12 +17,10 @@ class distCal (object):
         self.distance = 0
         self.actual_distance = 0
 
-    def getDist(self,x,y):
-        distance = 0
-        for i in range (len(x)-1):
-            distance += np.sqrt((x[i+1]-x[i]) ** 2 + (y[i+1]-y[i]) ** 2)
+    def getDist(self,prevD,x1,x2,y1,y2):
+        distance = np.sqrt((x2-x1) ** 2 + (y2-y1) ** 2)
 
         actual_distance = distance / 1067 * 110
 
-        return actual_distance
+        return actual_distance + prevD
 
