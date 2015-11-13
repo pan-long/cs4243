@@ -122,6 +122,10 @@ def main():
             warped_left_mid = stitcher.stitch(frame_mid, frame_left, H_left_mid)
             warped_left_mid_right = stitcher.stitch(warped_left_mid, frame_right, H_mid_right)
             warped_left_mid_right_cropped = crop_img(warped_left_mid_right)
+
+            # plt.imshow(np.dstack((warped_left_mid_right_cropped[:,:,2], warped_left_mid_right_cropped[:,:,1], warped_left_mid_right_cropped[:,:,0])))
+            # plt.show()
+            # break;
             # background = background_ext.apply(warped_left_mid_right_cropped)
 
             # if(fr == 7190):
