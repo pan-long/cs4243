@@ -8,6 +8,7 @@ from Transformer import Transformer
 from matplotlib import pyplot as plt
 import meanShift
 import savePoint
+import csv
 
 videos_path = 'videos/'
 videos = ['football_left.mp4', 'football_mid.mp4', 'football_right.mp4']
@@ -89,7 +90,12 @@ def main():
     frame_count_right = int(cap_right.get(cv.CV_CAP_PROP_FRAME_COUNT))
     frame_count = np.min([frame_count_left, frame_count_mid, frame_count_right])
 
-    player_name = 'B1'
+    player_name = 'R1'
+    # clear previous file
+    player_filename = "player_{id}_points.csv".format(id = player_name)
+    with open(player_filename, 'w') as csvfile:
+        writer = csv.writer(csvfile, delimiter=',',)
+
     # point = [123, 1156]
     # tracker = Tracker(config_scale, point)
 
@@ -137,7 +143,7 @@ def main():
                 fr += 1
             else:
                 mean_shift_frame, mean_shift_point = mean_shift_tracker.trackOneFrame(warped_left_mid_right_cropped)
-                savePoint.saveOnePlayerPoint("R1", mean_shift_point, fr)
+                savePoint.saveOnePlayerPoint(player_name, mean_shift_point, fr)
                 cv2.imshow('football', mean_shift_frame)
                 cv2.waitKey(1)
                 # video_out.write(mean_shift_frame)
