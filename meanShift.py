@@ -1,5 +1,5 @@
-import numpy as np
 import cv2
+import numpy as np
 
 class meanShiftTracker(object):
    roi = None
@@ -35,6 +35,15 @@ class meanShiftTracker(object):
    MAX_ROW_INDEX = 250
    MAX_COL_INDEX = 2100
 
+   manual_tracking = False
+
+   def mouseEventCallback(self, event, x, y, flags, user_data):
+      if event == cv2.EVENT_LBUTTONDOWN:
+         print(x, y)
+         # x = 2 * x
+         # y = 2 * y
+         self.setTrack_window((x - 2, y - 5, 4, 10))
+         self.manual_tracking = True
 
    def initFromFirstFrame(self, frame):
       print '====================== MeanShift: init frame ==================================='
@@ -53,6 +62,10 @@ class meanShiftTracker(object):
       self.mask = mask
       self.roi_hist = roi_hist
 
+      cv2.imshow('football', frame)
+      cv2.setMouseCallback('football', self.mouseEventCallback)
+      cv2.waitKey(0)
+      
       # cv2.rectangle(frame, (self.c, self.r), (self.c+self.w, self.r+self.h), (0, 0, 255), 1)
       # cv2.imshow("temp_ret", frame)
       # cv2.waitKey(0)
@@ -391,4 +404,3 @@ class meanShiftTracker(object):
       #    cv2.imwrite(chr(k)+".jpg",img2)
       
       return frame
-

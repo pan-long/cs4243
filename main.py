@@ -42,16 +42,6 @@ def crop_img(img):
     # TODO: Detect the black area and crop smartly.
     return img[crop_image_rect['min_y']:crop_image_rect['max_y'], crop_image_rect['min_x']: crop_image_rect['max_x']]
 
-def minPoint(points):
-    min = 3000 ** 2 * 2
-    for i in range(len(points)):
-        dist = (points[i][0] - prev[0]) ** 2 + (points[i][1] - prev[1]) ** 2
-        if dist < min:
-            min = dist
-            minPt = points[i]
-
-    return minPt
-
 # def testDictionary(test_dict):
 #     test_dict["{r}_{c}".format(r = 2, c = 2)] = 1
 #     return
@@ -78,12 +68,12 @@ def main():
     # # print r, " ", c
     # raise ValueError("temp stop")
     stitcher = Stitcher()
-    if config_scale:
-        background = cv2.imread('background_scaled.jpg')
-    else:
-        background = cv2.imread('background.jpg')
-    background_ext = cv2.BackgroundSubtractorMOG2()
-    background_ext.apply(background)
+    # if config_scale:
+    #     background = cv2.imread('background_scaled.jpg')
+    # else:
+    #     background = cv2.imread('background.jpg')
+    # background_ext = cv2.BackgroundSubtractorMOG2()
+    # background_ext.apply(background)
 
     transformer = Transformer(config_scale)
 
@@ -98,11 +88,12 @@ def main():
     frame_count_right = int(cap_right.get(cv.CV_CAP_PROP_FRAME_COUNT))
     frame_count = np.min([frame_count_left, frame_count_mid, frame_count_right])
 
-    point = [123, 1156]
-    tracker = Tracker(config_scale, point)
+    player_name = 'B1'
+    # point = [123, 1156]
+    # tracker = Tracker(config_scale, point)
 
-    fourcc = cv2.cv.CV_FOURCC('m', 'p', '4', 'v') # note the lower case
-    video_out = cv2.VideoWriter('out_put_mean_shift.mp4',fourcc, 24.0, (2100,250), True)
+    # fourcc = cv2.cv.CV_FOURCC('m', 'p', '4', 'v') # note the lower case
+    # video_out = cv2.VideoWriter('out_put_mean_shift.mp4',fourcc, 24.0, (2100,250), True)
 
     mean_shift_tracker = meanShift.meanShiftTracker()
     fr = 0
@@ -119,10 +110,12 @@ def main():
             frame_left = cv2.resize(frame_left, scaled_size)
             frame_mid = cv2.resize(frame_mid, scaled_size)
             frame_right = cv2.resize(frame_right, scaled_size)
+            frame_mid = cv2.convertScaleAbs(frame_mid, alpha=0.92)
+
             warped_left_mid = stitcher.stitch(frame_mid, frame_left, H_left_mid)
             warped_left_mid_right = stitcher.stitch(warped_left_mid, frame_right, H_mid_right)
             warped_left_mid_right_cropped = crop_img(warped_left_mid_right)
-            background = background_ext.apply(warped_left_mid_right_cropped)
+            # background = background_ext.apply(warped_left_mid_right_cropped)
 
             # if(fr == 7190):
                 # plt.imshow(warped_left_mid_right_cropped)
@@ -132,17 +125,20 @@ def main():
             if fr == 0:
                 mean_shift_tracker.initFromFirstFrame(warped_left_mid_right_cropped)
                 # set fr to 800 after initialize to speed up test
-                fr = 1500
+                # fr = 1500
                 # mean_shift_tracker.setTrack_window((984,76,5,11)) # set frame number for fr 800
                 # mean_shift_tracker.setTrack_window((940,81,5,11)) # set frame number for fr 1200
-                mean_shift_tracker.setTrack_window((927,64,5,11)) # set frame number for fr 1500
+                # mean_shift_tracker.setTrack_window((927,64,5,11)) # set frame number for fr 1500
                 # mean_shift_tracker.setTrack_window((702,60,5,11)) # set frame number for fr 7100
-                cap_left.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
-                cap_mid.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
-                cap_right.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
+                # cap_left.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
+                # cap_mid.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
+                # cap_right.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
+                fr += 1
             else:
                 mean_shift_frame = mean_shift_tracker.trackOneFrame(warped_left_mid_right_cropped)
-                video_out.write(mean_shift_frame)
+                cv2.imshow('football', mean_shift_frame)
+                cv2.waitKey(1)
+                # video_out.write(mean_shift_frame)
                 fr += 1
             
         else:
