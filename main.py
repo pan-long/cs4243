@@ -102,8 +102,8 @@ def main():
     # point = [123, 1156]
     # tracker = Tracker(config_scale, point)
 
-    # fourcc = cv2.cv.CV_FOURCC('m', 'p', '4', 'v') # note the lower case
-    # video_out = cv2.VideoWriter('out_put_mean_shift.mp4',fourcc, 24.0, (2100,250), True)
+    fourcc = cv2.cv.CV_FOURCC('m', 'p', '4', 'v') # note the lower case
+    video_out = cv2.VideoWriter('out_put_mean_shift_RFEREE.mp4',fourcc, 24.0, (2100,250), True)
 
     mean_shift_tracker = meanShift.meanShiftTracker()
     fr = 0
@@ -131,7 +131,7 @@ def main():
             # break;
             # background = background_ext.apply(warped_left_mid_right_cropped)
 
-            # if(fr == 3600):
+            # if(fr == 2000):
                 # plt.imshow(np.dstack((warped_left_mid_right_cropped[:,:,2], warped_left_mid_right_cropped[:,:,1], warped_left_mid_right_cropped[:,:,0])))
                 # plt.show()
                 # break
@@ -139,11 +139,12 @@ def main():
             if fr == 0:
                 mean_shift_tracker.initFromFirstFrame(warped_left_mid_right_cropped)
                 # set fr to 800 after initialize to speed up test
-                # fr = 1500
+                # fr = 2000
                 # mean_shift_tracker.setTrack_window((984,76,5,11)) # set frame number for fr 800
                 # mean_shift_tracker.setTrack_window((940,81,5,11)) # set frame number for fr 1200
                 # mean_shift_tracker.setTrack_window((927,64,5,11)) # set frame number for fr 1500
                 # mean_shift_tracker.setTrack_window((702,60,5,11)) # set frame number for fr 7100
+                # mean_shift_tracker.setTrack_window((995,59,5,11)) # set frame number for fr 2000 for REFEREE
                 # cap_left.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
                 # cap_mid.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
                 # cap_right.set(cv.CV_CAP_PROP_POS_FRAMES, fr)
@@ -153,7 +154,7 @@ def main():
                 savePoint.saveOnePlayerPoint(player_name, mean_shift_point, fr)
                 cv2.imshow('football', mean_shift_frame)
                 cv2.waitKey(1)
-                # video_out.write(mean_shift_frame)
+                video_out.write(mean_shift_frame)
                 fr += 1
             
         else:
